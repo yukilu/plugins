@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style type="text/css">
+    * {padding: 0; margin: 0; list-style:none;}
+    div {width: 200px; height: 200px; background: #F00; position: absolute; left:0; top:0;}
+    </style>
+    <script src="carousel.js"></script>
+    <script type="text/javascript">
+    window.onload = function () {
+        var imgUrl = ['img/wow1.png', 'img/wow2.png', 'img/wow3.png', 'img/wow4.png' , 'img/wow5.png', 'img/wow6.png'];
+        var carousel = new Carousel(imgUrl, 670, 335);
+        carousel.autoplay();
+    };
+    </script>
+    <title>Carousel</title>
+</head>
+<body>
+    
+</body>
+</html>
