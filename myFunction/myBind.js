@@ -1,9 +1,10 @@
 Function.prototype.myBind = function (target) {
     let that = this;
     return function() {
-        let args = Array.prototype.slice.call(arguments);
-        return that.apply(target, args);
-    }
+        //let args = Array.prototype.slice.call(arguments);
+        //return that.apply(target, args);
+        return that.apply(target, arguments);
+    };
 };
 
 function add(z) {
