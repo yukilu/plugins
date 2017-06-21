@@ -1,22 +1,22 @@
 class MyPromise {
     constructor(fn) {
         const that = this;
-        let successCallback, failCallback;
-        let value, error;
-        let state = 'PENDING';
+        this.value = this.error = null;
+        this.successCallback = this.failCallback = null;       
+        this.state = 'PENDING';
 
         fn(resolve, reject);
 
         function resolve(v) {
-            that.value = value;
+            that.value = v;
             that.state = 'FULFILLED';
-            successCallback && successCallback(v);
+            that.successCallback && that.successCallback(v);
         }
 
         function reject(e) {
             that.error = e;
             that.state = 'REJECTED';
-            failCallback && failCallback(e);
+            that.failCallback && that.failCallback(e);
         }
     }
     then(fulfilled, rejected) {
@@ -25,19 +25,19 @@ class MyPromise {
         if (this.state === 'FULFILLED') {
             rtn = fulfilled && fulfilled(this.value);
             if (rtn == undefined || typeof rtn.then !== 'function')
-                rtn = new Promise(resolve => { resolve(rtn); });
+                rtn = new MyPromise(resolve => { resolve(rtn); });
 
         }
         else if (this.state === 'REJECTED') {
             rejected && rejected(this.error);
-            rtn = new Promise((resolve, reject) => { reject(this.error); });
+            rtn = new MyPromise((resolve, reject) => { reject(that.error); });
                 
         }
-        else { //this.state === 'PENDING'
-            rtn = new Promise(function (resolve, reject) {
+        else //this.state === 'PENDING'
+            rtn = new MyPromise(function (resolve, reject) {
                 that.successCallback = function (v) {
                     let r = fulfilled && fulfilled(v);
-                    if (r && r.then === 'function')
+                    if (r && typeof r.then === 'function')
                         r.then(v => {
                             resolve(v);
                         }, e => {
@@ -51,13 +51,12 @@ class MyPromise {
                     reject(e);
                 };
             });
-        }
 
         return rtn;
     }
 }
 
-let p = new Promise(resolve => {
+let p = new MyPromise(resolve => {
     setTimeout(() => {
         resolve(0);
     }, 2000);
@@ -65,14 +64,14 @@ let p = new Promise(resolve => {
 
 let r = p.then(v => {
     console.log(v);
-    return new Promise(resolve => {
+    return new MyPromise(resolve => {
         setTimeout(() => {
             resolve(1);
         }, 2000);
     });
 }).then(v => {
     console.log(v);
-    return new Promise(resolve => {
+    return new MyPromise(resolve => {
         setTimeout(() => {
             resolve(2);
         }, 2000);
