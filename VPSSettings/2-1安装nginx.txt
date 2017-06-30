@@ -1,0 +1,16 @@
+链接：https://www.howtoing.com/how-to-install-nginx-on-ubuntu-16-04/
+
+安装命令行
+    apt-get update
+    apt-get install nginx
+
+
+nginx相关命令
+  1)查看状态
+    systemctl status nginx
+  2)启动/停止/重启/重载
+    systemctl start/stop/restart/reload nginx
+  或service nginx start/stop/restart/reload
+  3)默认nginx为自启动
+    systemctl disable nginx  **停用nginx，不再自启动**
+    systemctl enable nginx   **重新启用**

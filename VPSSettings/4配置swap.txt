@@ -1,0 +1,26 @@
+1.查看swap情况（ top 和 free -m 也可查看）
+    swapon -s
+
+2.创建并允许swap文件（此处设为1G，内存<2G时，一般为RAM的2-2.5倍）
+    dd if=dev/zero of=/swapfile bs=1024 count=1024k
+
+3.格式化并激活
+    mkswap /swapfile
+    swapon /swapfile
+
+4.赋予swap文件适当的权限
+    chown root:root /swapfile
+    chmod 600 /swapfile
+
+5.配置开机挂载，修改 /etc/fstab 文件
+    vi /etc/fstab
+  在最后添加
+    /swapfile swap swap defaults 0 0
+
+6.设置swappiness，默认是60
+  1)查看swappiness值
+      cat /proc/sys/vm/swappiness
+  2)修改 /etc/sysctl.conf
+      vi /etc/sysctl.conf
+    在最后添加
+      vm.swappiness=10    **或者设置为0，但是可能会有些问题，所以觉得10比较合适**

@@ -1,0 +1,20 @@
+1.禁用密码登录（更安全的方法禁用root登录）,使用rsa秘钥登录
+
+若显示没安装gcc，make等
+使用 apt-get update
+     apt-get install build-essential
+一般还要安装一个python
+     apt-get install python
+
+2.安装并配置程序
+  2-1 安装nginx
+  2-2 安装node(npm 安装pm2)
+  2-3 安装mysql
+  2-4 安装shadowsocks
+  2-5 安装let's encrypt部署https
+
+3.开启安全程序
+  3-1 ufw
+  3-2 fail2ban(若禁用了密码登录，使用了rsa秘钥登录，denyhosts可不装，容易误杀)
+
+4.配置swap

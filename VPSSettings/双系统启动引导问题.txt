@@ -1,0 +1,18 @@
+easyBCD2.3 无法在win10下引导启动Ubuntu 17.04
+
+微软自带bcdedit也无法作用（顺便说一句，微软自带diskpart程序来管理磁盘，不用另外安装其他磁盘管理软件）
+bcdedit能直接设置开机时候经典黑白条，具体google
+
+所以选择Ubuntu自带grub来引导win10启动
+
+1.安装的时候挂载 / 
+
+2.然后下面引导启动程序保持默认，为整个硬盘，安装后会覆盖win的启动，并通过grub来引导win10
+
+3.调整顺序，启动时默认选择win
+  1) 编辑 /etc/default/grub 文件
+     $ sudo gedit /etc/default/grub
+    修改default值为4，timeout可以修改为5
+
+  2) 更新grub，忘记更新grub不会让设置生效
+     $ sudo update-grub

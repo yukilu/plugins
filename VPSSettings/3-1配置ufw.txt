@@ -1,0 +1,16 @@
+1.查看当前状态
+    ufw status      **默认不开启**
+
+2.配置默认静止名单
+    ufw default deny
+
+3.设置运行的端口
+    ufw allow 443
+
+    端口列表：80     http
+              443    https
+              xxxx   shadowsocks定义的端口
+              xxxxx  ssh设置的端口
+
+4.启动，启动之后默认开机自启动
+    ufw enable

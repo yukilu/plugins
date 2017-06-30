@@ -1,0 +1,33 @@
+通过let's encrypt颁发的免费证书实现
+
+链接：https://letsencrypt.org/
+
+通过certbot实现
+链接：https://certbot.eff.org/
+
+选定软件及系统
+链接：https://certbot.eff.org/#ubuntuxenial-nginx
+
+1.通过certbot安装
+$ sudo apt-get update
+$ sudo apt-get install software-properties-common
+$ sudo add-apt-repository ppa:certbot/certbot
+$ sudo apt-get update
+$ sudo apt-get install python-certbot-nginx 
+
+2.使用插件设置（在这之前，已经配置好nginx，并把对应的域名设置放入了nginx文件夹内）
+$ sudo certbot --nginx
+
+3.修改nginx配置文件，启用http2
+    1)修改 /etc/nginx/conf.d/xx.conf 在443端口监听server的设置里加入http2
+    server {
+        ...
+        listen 443 ssl http2;
+        ...
+    }
+
+    2)修改 /etc/nginx/nginx.conf ，在其中找到 ssl_prefer_server_ciphers on; 在后面加以下一句
+    ssl_ciphers EECDH+CHACHA20:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+
+4.只有3个月有效期，到期前要重新
+$ sudo certbot renew --dry-run

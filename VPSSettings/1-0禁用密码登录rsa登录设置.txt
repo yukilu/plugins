@@ -1,0 +1,26 @@
+1.生成rsa秘钥
+    windows下用xshell或putty生成rsa秘钥，putty生成的winscp可直接用，xshell生成的要通过PuTTYgen转换winscp才能用，导入的时候好像会提醒你转换
+    xshell生成秘钥链接：http://7424593.blog.51cto.com/7414593/1719853
+    putty生成秘钥链接：http://callmepeanut.blog.51cto.com/7756998/1336358
+
+2.私钥保存在本地，xshell，xftp，putty，winscp使用时先导入
+
+3.公钥放在服务器，放到对应用户下的.ssh文件夹内，如root用户为/root/.ssh
+  1)在用户下新建.ssh文件夹并进入
+    root@ubuntu:~#     mkdir /root/.ssh
+    root@ubuntu:~/.ssh#     cd /root/.ssh
+  2)然后通过winscp放到/root/.ssh文件夹下
+    root@ubuntu:~/.ssh#     mv id_rsa.pub authorized_keys
+  3)修改文件权限
+    root@ubuntu:~/.ssh#     chmod 700 /root/.ssh
+    root@ubuntu:~/.ssh#     chmod 600 /root/.ssh/authorized_keys
+  4)修改 /etc/ssh/sshd_config文件
+    RSAAuthentication yes
+    PubkeyAuthentication yes
+    #AuthorizedKeysFile %h/.ssh/authorized_keys （若为#注释这里可不用改）
+    PasswordAuthentication no   **这里表示禁用密码登录**
+  5)重启sshd
+    root@ubuntu:~#     service sshd restart
+  或root@ubuntu:~#     /etc/init.d/ssh restart
+
+ 

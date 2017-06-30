@@ -1,0 +1,34 @@
+1.新建用户
+    useradd -d /home/username -m username  **创建账户并指定登录目录,不存在时自动创建**
+    **-d<登入目录>：指定用户登入时的启始目录；-m：自动建立用户的登入目录；**
+2.设定密码
+    passwd username
+3.将用户增加到sudoer用户组中
+    usermod -a -G sudo username
+4.普通用户设置ssh-rsa登录
+  1)公钥放入 /home/username/.ssh 中，改名为authorized_keys方法同root用户
+  2)改文件权限
+    chmod 700 /home/username/.ssh
+    chmod 600 /home/username/.ssh/authorized_keys
+  3)将上述文件修改用户组为对应的普通用户
+    chown -r username /home/username/.ssh **-r表示递归，表示连其中的文件权限一起修改**
+5.禁止root用户登录
+  修改 /etc/ssh/sshd_config
+    vi /etc/ssh/sshd_config
+  PermitRootLogin no
+  重启sshd服务
+    service sshd restart
+
+
+注意点：
+1)当退格键不正确时候
+    $ stty erase ^H
+
+2)普通用户切root
+    $ su root 或 su -
+
+3)切回普通用户
+    # su username 或 exit
+
+4)删除用户
+    # userdel username

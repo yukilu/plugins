@@ -1,0 +1,31 @@
+源自带shadowsocks为2.1.0，版本太老，不支持cr4-md5，chacha20等加密方式，使用会报错
+
+1.安装
+    apt-get update
+    apt-get install python-pip
+    pip install shadowsocks  **2.8.2**
+
+2.安装libsodium来支持chacha20加密方式
+    wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.12.tar.gz
+    tar -zxf libsodium-1.0.12.tar.gz
+    cd libsodium-1.0.12
+    ./configure && make && make install
+    ldconfig
+
+3.创建配置文件放入 /etc/shadowsocks.json
+  {
+    "server": "45.78.21.176",   //vps的ip地址
+    "server_port": 8388,    //自定义的port
+    "local_address": "127.0.0.1",
+    "local_port": 1080,
+    "password": "fuck1234",    //自定义口令
+    "timeout": 600,
+    "method": "chacha20"    //加密方式
+  }
+
+4.加入开机启动
+    vi /etc/rc.local
+    在最后加入
+        ssserver -c /etc/shadowsocks.json -d start
+如果手动启动
+    ssserver -c /etc/shadowsocks.json -d start

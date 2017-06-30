@@ -1,0 +1,21 @@
+1.生成rsa秘钥
+    ssh-keygen -t rsa -p     **-p可选，是给秘钥加密码的**
+
+  生成文件在 /home/username/.ssh/id_rsa  /home/username/.ssh/id_rsa.pub
+  ubuntu应该在 ~/.ssh 下
+  **若已经通过xshell或PuTTYgen等生成过，该步可以跳过**
+
+2.给用户添加秘钥（若在命令行下通过第一步生成秘钥，改步可以跳过）
+  1)创建.ssh文件，并将私钥放入（无法直接通过桌面拖入，所以先放在根目录即 ~ 下）
+     mkdir .ssh
+     mv id_rsa ~/.ssh/id_rsa
+
+  2)设置文件权限只能root操作，不然由于安全问题ssh-add的时候会报错
+     chmod 400 ~/.ssh/id_rsa        (600也行)
+
+  3)添加秘钥
+     ssh-add ~/.ssh/id_rsa
+
+  4)登录
+     ssh username@host -p xxxxx
+    示例：ssh root@45.78.21.176 -p 29599
