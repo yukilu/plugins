@@ -2,7 +2,7 @@
     swapon -s
 
 2.创建并允许swap文件（此处设为1G，内存<2G时，一般为RAM的2-2.5倍）
-    dd if=dev/zero of=/swapfile bs=1024 count=1024k
+    dd if=/dev/zero of=/swapfile bs=1024 count=1024k
 
 3.格式化并激活
     mkswap /swapfile
