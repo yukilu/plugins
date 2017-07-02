@@ -1,0 +1,49 @@
+**mysql**
+
+1.安装mysql命令行
+    apt-get update
+    apt-get install mysql-server
+    mysql_secure_installation
+
+2.启动mysql
+    service mysql start/stop
+  或 /etc/init.d/mysql start/stop
+
+3.使用mysql
+    mysql -u root -p
+
+4.具体使用(进入后为mysql> 开头，其中语句都以分号 ; 结尾)
+    1)创建用户
+         CREATE USER username@host IDENTIFIED BY 'password'; **password的引号是必须的，username和host不用**
+    2)授权用户
+         GRANT ALL ON database.table TO username@host;
+    3)创建数据库及表
+         CREATE DATABASE dbName;
+         CREATE TABLE tbName;
+    4)其他命令请google
+         链接：http://www.runoob.com/mysql/mysql-tutorial.html
+
+**mongodb**
+
+1.Import MongoDB Public Key
+    $ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+
+2.Create a List File for MongoDB
+    $ echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+
+3.Install MongoDB
+    $ sudo apt-get update
+    $ sudo apt-get install mongodb-org -y
+
+4.Start MongoDB
+    $ sudo systemctl start mongod
+    $ sudo systemctl status mongod
+
+5.Enable automatic starting at boot time
+    $ sudo systemctl enable mongod
+
+6.Starting MongoDB
+    $ mongo
+
+         
+    

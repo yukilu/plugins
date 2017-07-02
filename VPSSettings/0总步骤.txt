@@ -9,7 +9,7 @@
 2.安装并配置程序
   2-1 安装nginx
   2-2 安装node(npm 安装pm2)
-  2-3 安装mysql
+  2-3 安装mysql及mongodb
   2-4 安装shadowsocks
   2-5 安装let's encrypt部署https
 
