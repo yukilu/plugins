@@ -18,3 +18,8 @@
   3-2 fail2ban(若禁用了密码登录，使用了rsa秘钥登录，denyhosts可不装，容易误杀)
 
 4.配置swap
+
+
+*******************
+重启后如果mysql和mongo不用的话，使用 service mysql stop 和 service mongod stop 来关闭(主要是mysql占的多，mongo占的资源很少)，节约RAM
+*******************
