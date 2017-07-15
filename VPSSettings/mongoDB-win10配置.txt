@@ -1,0 +1,38 @@
+1.启动mongodb
+C:\Program Files\MongoDB\Server\3.4\bin\mongod.exe --dbpath D:\data\db
+
+2.为日志文件和配置文件传教目录
+配置文件目录：D:\data\config\mongod.cfg 
+日志文件目录：D:\data\dblog\
+
+配置mongod.cfg
+
+systemLog:
+    destination: file
+    path: D:\data\dblog\mongod.log
+    logAppend: true
+storage:
+    dbPath: D:\data\db
+net:
+    port: 27017
+
+3.安装服务
+配置好上面后，在到cmd中执行（使用管理员权限）：
+C:\Program Files\MongoDB\Server\3.4\bin>mongod.exe --config "D:\data\config\mongod.cfg" --serviceName "mongod" --install
+
+4.启动/关闭mongodb服务
+net start/stop mongod
+
+5.删除Windows服务
+D:\Program Files\MongoDB\Server\3.4\bin>
+mongod --config D:\MongoData\cfg\mongod.cfg --remove
+
+6.MongoDB 环境变量的设置(;C:\Program Files\MongoDB\Server\3.4\bin)
+在桌面 "我的电脑" 单击鼠标右键,打开属性,在系统界面选择 "高级系统设置",进入"环境变量"
+在 "系统变量" 中,选择 "Path",然后点击下方的 "编辑"
+添加分号并加入本地 MongoDB 的包含 bin 路径,点击确定
+
+7.导入数据到集合（linux下同样适用，路径改下即可）
+在命令行中执行mongoimport命令将上面下载的数据文件中的数据导入到test数据库的restaurants集合中。如果此集合已经存在，下面的操作会先删除。
+mongoimport --db yourDatabase --collection yourCollection --drop --file D:\data\yourData.json
+
