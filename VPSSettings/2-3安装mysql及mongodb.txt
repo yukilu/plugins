@@ -23,6 +23,9 @@
     4)其他命令请google
          链接：http://www.runoob.com/mysql/mysql-tutorial.html
 
+5.若不使用mysql并要禁止其自启动，运行命令 systemctl disable mysql
+  重新启用，运行命令 systemctl enable mysql
+
 **mongodb**
 
 1.Import MongoDB Public Key

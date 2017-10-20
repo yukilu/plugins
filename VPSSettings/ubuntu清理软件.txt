@@ -1,0 +1,11 @@
+1. sudo　apt-get autoclean
+
+   删除你已经卸载掉的软件包的命令
+
+2. sudo　apt-get clean
+
+   删除电脑上存储的全部安装包
+
+3. sudo　apt-get autoremove
+
+   删除已经卸载了的软件的依赖包

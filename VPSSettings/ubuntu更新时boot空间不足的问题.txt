@@ -1,0 +1,22 @@
+主要是因为旧内核占满了boot空间，导致升级内核时空间不够
+
+直接 apt autoremove 自动删除旧内核
+
+1. 使用 df -hl
+
+     查看磁盘分区，会显示各分区信息，包括已使用及剩余空间
+
+     可以看到 /boot 为360多M，并且剩余为0，空间都已经使用，所以要清理boot
+
+2. 使用 uname -a/-r 查看当前内核版本
+
+3. 使用 dpkg --list | grep linux-image
+        dpkg --list | grep linux-headers
+
+     可以看到之前的旧内核
+   
+   使用 sudo apt-get purge linux-image-3.19.0-23
+        sudo apt-get purge linux-headers-3.19.0-23
+
+     可以删除旧内核
+
