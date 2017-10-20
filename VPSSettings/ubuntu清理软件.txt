@@ -1,3 +1,10 @@
+运行以下命令行
+    apt-get autoclean
+    apt-get autoremove
+
+
+清理软件命令行说明
+
 1. sudo　apt-get autoclean
 
    删除你已经卸载掉的软件包的命令
