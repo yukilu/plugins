@@ -4,7 +4,7 @@
   生成文件在 /home/username/.ssh/id_rsa  /home/username/.ssh/id_rsa.pub
   ubuntu应该在 ~/.ssh 下
   **若已经通过xshell或PuTTYgen等生成过，该步可以跳过**
-  **若用xshell或PuTTYgen生成的私钥，要用PuTTYgen中的conversions转成OpenSSH key**
+  **若用xshell或PuTTYgen生成的私钥，要用PuTTYgen中的conversions转成OpenSSH key才能被ubuntu导入，不然会报格式错误**
 
 2.给用户添加秘钥（若在命令行下通过第一步生成秘钥，改步可以跳过）
   1)创建.ssh文件，并将私钥放入（无法直接通过桌面拖入，所以先放在根目录即 ~ 下）
