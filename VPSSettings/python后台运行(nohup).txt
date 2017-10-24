@@ -4,7 +4,16 @@ nohup命令:  nohup Command &
 
 例:         nohup python3 v.py &
 
-2. 关闭上述文件
+2. 关闭python进程
 
-  1) jobs
-  2) kill %n
+  1) ps(process status 进程状态)命令查看进程，ps[options]
+
+     grep命令 grep[options] pattern
+     Linux系统中grep命令是一种强大的文本搜索工具，它能使用正则表达式搜索文本，并把匹配的行打印出来
+     grep全称是Global Regular Expression Print，表示全局正则表达式版本
+
+    ps -ef | grep python
+
+  2) kill命令杀死进程
+
+    kill xxxx
