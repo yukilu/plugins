@@ -6,7 +6,7 @@ nohup命令:  nohup Command &
 
 2. 关闭python进程
 
-  1) ps(process status 进程状态)命令查看进程，ps[options]
+  1) ps(process status 进程状态)命令查看进程id，ps[options]
 
      grep命令 grep[options] pattern
      Linux系统中grep命令是一种强大的文本搜索工具，它能使用正则表达式搜索文本，并把匹配的行打印出来
