@@ -1,0 +1,10 @@
+1. 后台运行文件，包括python
+
+nohup命令:  nohup Command &
+
+例:         nohup python3 v.py &
+
+2. 关闭上述文件
+
+  1) jobs
+  2) kill %n
