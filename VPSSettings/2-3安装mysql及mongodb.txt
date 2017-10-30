@@ -23,8 +23,19 @@
     4)其他命令请google
          链接：http://www.runoob.com/mysql/mysql-tutorial.html
 
-5.若不使用mysql并要禁止其自启动，运行命令 systemctl disable mysql
+5.若不使用mysql并要禁止其自启动（最好不要这样做，而是手动关闭，不然更新软件时发生错误，具体原因如下），运行命令 systemctl disable mysql
   重新启用，运行命令 systemctl enable mysql
+
+  **若disable了mysql，这样会在运行 apt-get dist-upgrade 更新软件时，造成mysql被禁止自行启动，但是更新过程要求它重新启动，会造成mysql的软件错误**
+  **所以最好不要disable，而是在开机后手动关闭**
+
+6.删除mysql
+  dpkg -l | grep mysql
+  可以查看所有已安装的mysql相关的软件
+
+  apt-get remove mysql-*
+  删除所有mysql前缀的软件包，即mysql相关的软件包
+
 
 **mongodb**
 
