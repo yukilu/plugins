@@ -1,0 +1,40 @@
+{
+  "PAGE_AMOUNT": 2,
+  "ITEM_AMOUNT": 5,
+  "DURATION": 15,
+  "chosen": 0,
+  "series": [
+    {
+      "index": 0,
+      "title": "mostCollected",
+      "pageHrefIndex": 7,
+      "pageSrcIndex": 2,
+      "itemIndex": 12,
+      "baseUrl": "http://www.91porn.com/v.php?category=mf&viewtype=basic"
+    },
+    {
+      "index": 1,
+      "title": "hotest",
+      "pageHrefIndex": 1,
+      "pageSrcIndex": 1,
+      "itemIndex": 0,
+      "baseUrl": "http://www.91porn.com/v.php?category=top&viewtype=basic"
+    },
+    {
+      "index": 2,
+      "title": "hotestLast",
+      "pageHrefIndex": 1,
+      "pageSrcIndex": 1,
+      "itemIndex": 0,
+      "baseUrl": "http://www.91porn.com/v.php?category=top&m=-1&viewtype=basic"
+    },
+    {
+      "index": 3,
+      "title": "current",
+      "pageHrefIndex": 1,
+      "pageSrcIndex": 1,
+      "itemIndex": 0,
+      "baseUrl": "http://www.91porn.com/v.php?next=watch"
+    }
+  ]
+}
