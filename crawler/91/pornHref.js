@@ -2,23 +2,27 @@ const fs = require('fs');
 const http = require('http');
 const cheerio = require('cheerio');
 
-const settingFile = 'porn/setting.json';
+console.log('pornHref.js begins...');
 
+const settingFile = 'porn/setting.json';
 const setting = readFileSync(settingFile, 'json');
 const { chosen, series, DURATION, PAGE_AMOUNT } = setting;
 const chosenSeries = series[chosen];
 const { title, pageHrefIndex, baseUrl } = chosenSeries;
-
-let promises = [];
 const pageIndex = pageHrefIndex;
 const endPageIndex = pageIndex + PAGE_AMOUNT;
+
+console.log(`title=${title}, pageIndex=${pageIndex}, DURATION=${DURATION}, PAGE_AMOUNT=${PAGE_AMOUNT}`);
+
+let promises = [];
 for (let i = pageIndex; i < endPageIndex; i++)
     promises.push(getHref(i, i - pageIndex));
 
 Promise.all(promises).then(() => {
     chosenSeries.pageHrefIndex = endPageIndex;
+    setting.lastHrefModified = new Date().toUTCString();
     writeFileSync(settingFile, JSON.stringify(setting, null, 2));
-    console.log(`Get ${title} page(${pageIndex}~${endPageIndex-1}), all done!`);
+    console.log(`All done, ${title} page[${pageIndex} ~ ${endPageIndex-1}]!`);
 }, errorHandler);
 
 function getHref(pageIndex, index = 0) {
@@ -43,7 +47,7 @@ function getUrl(url, time = 0) {
                 res.on('data', chunk => { chunks += chunk; });
                 res.on('end', () => {
                     // writeFile('porn.txt', chunks).catch(e => console.log(e));
-                    console.log(`GOT ${url}.`);
+                    console.log(`GOT ${url}`);
                     const $ = cheerio.load(chunks);
                     resolve($);
                 });

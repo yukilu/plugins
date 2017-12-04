@@ -2,8 +2,8 @@ const fs = require('fs');
 const http = require('http');
 const cheerio = require('cheerio');
 
+console.log('pornSrc.js begins...');
 const settingFile = 'porn/setting.json';
-
 const setting = readFileSync(settingFile, 'json');
 const { chosen, series, DURATION, ITEM_AMOUNT } = setting;
 const chosenSeries = series[chosen];
@@ -23,6 +23,9 @@ const meetEnd = endItemIndex >= lastHrefIndex;
 if (meetEnd)
     endItemIndex = lastHrefIndex;
 const hrefsSliced = hrefs.slice(itemIndex, endItemIndex + 1);
+
+console.log(`title=${title}, pageIndex=${pageIndex}, startIndex=${itemIndex}, DURATION=${DURATION}, ITEM_AMOUNT=${ITEM_AMOUNT}`);
+
 const promises = hrefsSliced.map(function (href, index) {
     return getUrl(href, index * DURATION).then(function ($) {
         const node = $('source')[0];
@@ -31,15 +34,14 @@ const promises = hrefsSliced.map(function (href, index) {
             writeFile(tempFile, `${src}\r\n`, 'a').catch(errorHandler);
         else if (firstNullIndex === -1)
             firstNullIndex = itemIndex + index;
-        console.log(`itemIndex=${itemIndex + index}, pageIndex=${title} ${pageIndex}, count=${index}`);
+        console.log(`itemIndex=${itemIndex + index}, pageIndex=${title} ${pageIndex}, count=${index + 1}`);
         console.log(src);
         return src;
     }, errorHandler);
 });
 // const promises = hrefs.slice(item, itemIndex + ITEM_AMOUNT).map((href, index) => getUrl(href, index));
 Promise.all(promises).then(results => {
-    writeFileSync(srcFile, results.join('\r\n'));
-    unlink(tempFile).catch(errorHandler);
+    const atLeastOneSrcGot = firstNullIndex !== itemIndex;
 
     if (firstNullIndex !== -1)
         chosenSeries.itemIndex = firstNullIndex;
@@ -49,8 +51,26 @@ Promise.all(promises).then(results => {
     }
     else
         chosenSeries.itemIndex = endItemIndex + 1;
-    writeFileSync(settingFile, JSON.stringify(setting, null, 2));
-    console.log('Done!');
+    
+    setting.lastSrcModified = new Date().toUTCString();
+    if (atLeastOneSrcGot) {
+        writeFileSync(srcFile, results.join('\r\n'));
+        unlink(tempFile).catch(errorHandler);
+        writeFileSync(settingFile, JSON.stringify(setting, null, 2));
+        console.log('Done!');
+    } else
+        console.log('None src got!');
+
+    
+    if (meetEnd)
+        console.log(`pageSrcIndex has updated to ${chosenSeries.pageSrcIndex}.`);
+    else
+        console.log('pageSrcIndex noupdated!');
+    
+    if (atLeastOneSrcGot)
+        console.log(`itemIndex has updated to ${chosenSeries.itemIndex}.`);
+    else
+        console.log('itemIndex noupdated!')
 }, errorHandler);
 
 function getUrl(url, time = 0) {
@@ -62,7 +82,7 @@ function getUrl(url, time = 0) {
                 res.on('data', chunk => { chunks += chunk; });
                 res.on('end', () => {
                     // writeFile('porn.txt', chunks).catch(e => console.log(e));
-                    console.log(`GOT ${url}.`);
+                    console.log(`GOT ${url}`);
                     const $ = cheerio.load(chunks);
                     resolve($);
                 });
