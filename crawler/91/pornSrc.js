@@ -41,9 +41,10 @@ const promises = hrefsSliced.map(function (href, index) {
 });
 // const promises = hrefs.slice(item, itemIndex + ITEM_AMOUNT).map((href, index) => getUrl(href, index));
 Promise.all(promises).then(results => {
-    const atLeastOneSrcGot = firstNullIndex !== itemIndex;
+    const getAtLeastOneSrc = firstNullIndex !== itemIndex;
+    const getAtLeastOneNull = firstNullIndex !== -1; 
 
-    if (firstNullIndex !== -1)
+    if (getAtLeastOneNull)
         chosenSeries.itemIndex = firstNullIndex;
     else if (meetEnd) {
         ++chosenSeries.pageSrcIndex;
@@ -53,7 +54,7 @@ Promise.all(promises).then(results => {
         chosenSeries.itemIndex = endItemIndex + 1;
     
     setting.lastSrcModified = new Date().toUTCString();
-    if (atLeastOneSrcGot) {
+    if (getAtLeastOneSrc) {
         writeFileSync(srcFile, results.join('\r\n'));
         unlink(tempFile).catch(errorHandler);
         writeFileSync(settingFile, JSON.stringify(setting, null, 2));
@@ -62,12 +63,12 @@ Promise.all(promises).then(results => {
         console.log('None src got!');
 
     
-    if (meetEnd)
+    if (!getAtLeastOneNull && meetEnd)
         console.log(`pageSrcIndex has updated to ${chosenSeries.pageSrcIndex}.`);
     else
         console.log('pageSrcIndex noupdated!');
     
-    if (atLeastOneSrcGot)
+    if (atLeastGetOneSrc)
         console.log(`itemIndex has updated to ${chosenSeries.itemIndex}.`);
     else
         console.log('itemIndex noupdated!')
