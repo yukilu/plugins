@@ -5,73 +5,82 @@ const cheerio = require('cheerio');
 console.log('pornSrc.js begins...');
 const settingFile = 'porn/setting.json';
 const setting = readFileSync(settingFile, 'json');
-const { chosen, series, DURATION, ITEM_AMOUNT } = setting;
+const { chosen, series, DURATION, ITEM_AMOUNT, MAX_AMOUNT, domain } = setting;
 const chosenSeries = series[chosen];
-const { title, pageSrcIndex, itemIndex } = chosenSeries;
+const { title, pageSrcIndex } = chosenSeries;
 
-const pageIndex = pageSrcIndex;
-const strIndex = pageIndex === 1 ? '' : pageIndex;
-const hrefFile = `porn/${title}Href${strIndex}.txt`;
-const srcFile = `porn/${title}Src${strIndex}.txt`;
-const tempFile = `porn/${title}TempSrc${strIndex}.txt`;
+if (ITEM_AMOUNT > MAX_AMOUNT || ITEM_AMOUNT < 1)
+    throw new Error(`ITEM_AMOUT can\'t be less than 1 or more than ${MAX_AMOUNT}!`);
 
-let firstNullIndex = -1;
-let endItemIndex = itemIndex + ITEM_AMOUNT - 1;
+let pageIndex = pageSrcIndex;
+const hrefFile = `porn/${title}Href${pageIndex === 1 ? '' : pageIndex}.txt`;
+const srcFile = `porn/${title}Src.txt`;
+const tempFile = `porn/${title}TempSrc.txt`;
+
+const hrefTxts = [];
 const hrefs = readFileSync(hrefFile, 'json');
-const lastHrefIndex = hrefs.length - 1;
-const meetEnd = endItemIndex >= lastHrefIndex;
-if (meetEnd)
-    endItemIndex = lastHrefIndex;
-const hrefsSliced = hrefs.slice(itemIndex, endItemIndex + 1);
+let targetHrefs = hrefs.filter(href => !href.done);
+hrefTxts.push(hrefs);
 
-console.log(`title=${title}, pageIndex=${pageIndex}, startIndex=${itemIndex}, DURATION=${DURATION}, ITEM_AMOUNT=${ITEM_AMOUNT}`);
+while (targetHrefs.length <= ITEM_AMOUNT) {
+    const nextHrefFile = `porn/${title}Href${++pageIndex}.txt`;
+    const nextHrefs = readFileSync(nextHrefFile, 'json');
+    const filteredHrefs = nextHrefs.filter(href => !href.done);
+    hrefTxts.push(nextHrefs);
+    targetHrefs = targetHrefs.concat(filteredHrefs);
+}
 
-const promises = hrefsSliced.map(function (href, index) {
-    return getUrl(href, index * DURATION).then(function ($) {
+console.log(`domain=${domain}, title=${title}, pageIndex=[${pageSrcIndex} -> ${pageIndex}], DURATION=${DURATION}, ITEM_AMOUNT=${ITEM_AMOUNT}`);
+
+let nextPageSrcIndex = targetHrefs[ITEM_AMOUNT].pageIndex;
+let notGetCounter = 0;
+targetHrefs = targetHrefs.slice(0, ITEM_AMOUNT);
+const promises = targetHrefs.map(function (href, index) {
+    let url = href.href;
+    if (url.indexOf('http') === -1)
+        url = domain + url;
+    return getUrl(url, index * DURATION).then(function ($) {
         const node = $('source')[0];
         const src = node ? node.attribs.src : null;
-        if (src)
+        if (src) {
+            href.done = true;
             writeFile(tempFile, `${src}\r\n`, 'a').catch(errorHandler);
-        else if (firstNullIndex === -1)
-            firstNullIndex = itemIndex + index;
-        console.log(`itemIndex=${itemIndex + index}, pageIndex=${title} ${pageIndex}, count=${index + 1}`);
+        } else
+            ++notGetCounter;
+        console.log(`itemIndex=${href.itemIndex}, pageIndex=${title} ${href.pageIndex}, count=${index + 1}`);
         console.log(src);
         return src;
-    }, errorHandler);
+    }, err => {
+        ++notGetCounter;
+        console.log(`itemIndex=${href.itemIndex}, pageIndex=${title} ${href.pageIndex}, count=${index + 1}`);
+        console.log('network error', err);
+    });
 });
 // const promises = hrefs.slice(item, itemIndex + ITEM_AMOUNT).map((href, index) => getUrl(href, index));
-Promise.all(promises).then(results => {
-    const getAtLeastOneSrc = firstNullIndex !== itemIndex;
-    const getAtLeastOneNull = firstNullIndex !== -1; 
-
-    if (getAtLeastOneNull)
-        chosenSeries.itemIndex = firstNullIndex;
-    else if (meetEnd) {
-        ++chosenSeries.pageSrcIndex;
-        chosenSeries.itemIndex = 0;
+Promise.all(promises).then(function (results) {
+    if (notGetCounter === ITEM_AMOUNT) {
+        console.log('None src got! Setting.json noupdated.');
+        return;
     }
-    else
-        chosenSeries.itemIndex = endItemIndex + 1;
-    
-    setting.lastSrcModified = new Date().toUTCString();
-    if (getAtLeastOneSrc) {
-        writeFileSync(srcFile, results.join('\r\n'));
-        unlink(tempFile).catch(errorHandler);
-        writeFileSync(settingFile, JSON.stringify(setting, null, 2));
-        console.log('Done!');
-    } else
-        console.log('None src got!');
 
-    
-    if (!getAtLeastOneNull && meetEnd)
-        console.log(`pageSrcIndex has updated to ${chosenSeries.pageSrcIndex}.`);
-    else
-        console.log('pageSrcIndex noupdated!');
-    
-    if (atLeastGetOneSrc)
-        console.log(`itemIndex has updated to ${chosenSeries.itemIndex}.`);
-    else
-        console.log('itemIndex noupdated!')
+    if (notGetCounter)
+        nextPageSrcIndex = targetHrefs.find(href => !href.done).pageIndex;
+    chosenSeries.pageSrcIndex = nextPageSrcIndex;
+    setting.lastSrcModified = new Date().toUTCString();
+
+    hrefTxts.forEach(hrefs => {
+        const hrefFile = `porn/${title}Href${hrefs[0].pageIndex}.txt`;
+        writeFile(hrefFile, JSON.stringify(hrefs, null, 2)).then(info => console.log(info), errorHandler);
+    });
+    writeFile(srcFile, results.join('\r\n')).then(info => console.log(info, 'done!'), errorHandler);
+    unlink(tempFile).catch(errorHandler);
+    writeFile(settingFile, JSON.stringify(setting, null, 2)).then(function(info) {
+        console.log(info);
+        if (nextPageSrcIndex > pageIndex)
+            console.log(`pageSrcIndex has updated to ${nextPageSrcIndex}.`);
+        else
+            console.log('pageSrcIndex noupdated!');
+    }, errorHandler);
 }, errorHandler);
 
 function getUrl(url, time = 0) {

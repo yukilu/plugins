@@ -6,36 +6,44 @@ console.log('pornHref.js begins...');
 
 const settingFile = 'porn/setting.json';
 const setting = readFileSync(settingFile, 'json');
-const { chosen, series, DURATION, PAGE_AMOUNT } = setting;
+const { chosen, series, DURATION, PAGE_AMOUNT, domain, hrefSaveMode } = setting;
 const chosenSeries = series[chosen];
-const { title, pageHrefIndex, baseUrl } = chosenSeries;
+const { title, pageHrefIndex, path } = chosenSeries;
 const pageIndex = pageHrefIndex;
-const endPageIndex = pageIndex + PAGE_AMOUNT;
+const finalPageIndex = pageIndex + PAGE_AMOUNT;
 
-console.log(`title=${title}, pageIndex=${pageIndex}, DURATION=${DURATION}, PAGE_AMOUNT=${PAGE_AMOUNT}`);
+console.log(`domain=${domain}, title=${title}, pageIndex=${pageIndex}, DURATION=${DURATION}, PAGE_AMOUNT=${PAGE_AMOUNT}`);
 
 let promises = [];
-for (let i = pageIndex; i < endPageIndex; i++)
+for (let i = pageIndex; i < finalPageIndex; i++)
     promises.push(getHref(i, i - pageIndex));
 
 Promise.all(promises).then(() => {
-    chosenSeries.pageHrefIndex = endPageIndex;
+    chosenSeries.pageHrefIndex = finalPageIndex;
     setting.lastHrefModified = new Date().toUTCString();
     writeFileSync(settingFile, JSON.stringify(setting, null, 2));
-    console.log(`All done, ${title} page[${pageIndex} ~ ${endPageIndex-1}]!`);
+    console.log(`All done, ${title} page[${pageIndex} -> ${finalPageIndex-1}]!`);
 }, errorHandler);
 
 function getHref(pageIndex, index = 0) {
     const pageParam = pageIndex === 1 ? '' : `&page=${pageIndex}`;
-    const url = `${baseUrl}${pageParam}`;
+    const url = `${domain}${path}${pageParam}`;
 
     const hrefFile = `porn/${title}Href${pageIndex === 1 ? '' : pageIndex}.txt`;
 
     return getUrl(url, index * DURATION).then(function ($) {
-        const hrefs = $('#videobox .imagechannel a, #videobox .imagechannelhd a').map((index, a) => a.attribs.href).toArray();
-        writeFileSync(hrefFile, JSON.stringify(hrefs));
-        console.log(`${title}[page=${pageIndex}] done!`);
-    }, errorHandler);
+        const hrefs = $('#videobox .imagechannel a, #videobox .imagechannelhd a')
+            .map((index, a) => a.attribs.href)
+            .toArray()
+            .map((href, itemIndex) => {
+                if (hrefSaveMode === 0)
+                    href = href.replace(domain, '');
+                return { href, pageIndex, itemIndex, done: false };
+            });
+        return writeFile(hrefFile, JSON.stringify(hrefs, null, 2)).then(info => console.log(`${title}[page=${pageIndex}] done!`), errorHandler);
+    }, err => {
+        console.log(`${title}[page=${pageIndex}] network error!`, err);
+    });
 }
 
 function getUrl(url, time = 0) {
