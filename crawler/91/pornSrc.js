@@ -22,19 +22,32 @@ const hrefs = readFileSync(hrefFile, 'json');
 let targetHrefs = hrefs.filter(href => !href.done);
 hrefTxts.push(hrefs);
 
-while (targetHrefs.length <= ITEM_AMOUNT) {
-    const nextHrefFile = `porn/${title}Href${++pageIndex}.txt`;
-    const nextHrefs = readFileSync(nextHrefFile, 'json');
-    const filteredHrefs = nextHrefs.filter(href => !href.done);
-    hrefTxts.push(nextHrefs);
-    targetHrefs = targetHrefs.concat(filteredHrefs);
+let nextHrefFile;
+try {
+    while (targetHrefs.length < ITEM_AMOUNT) {
+        nextHrefFile = `porn/${title}Href${++pageIndex}.txt`;
+        const nextHrefs = readFileSync(nextHrefFile, 'json');
+        const filteredHrefs = nextHrefs.filter(href => !href.done);
+        hrefTxts.push(nextHrefs);
+        targetHrefs = targetHrefs.concat(filteredHrefs);
+    }
+} catch(e) {
+    // console.log(e);
+    console.log(`${nextHrefFile} not exist, readFileSync error!`);
+    --pageIndex;
 }
 
-console.log(`domain=${domain}, title=${title}, pageIndex=[${pageSrcIndex} -> ${pageIndex}], DURATION=${DURATION}, ITEM_AMOUNT=${ITEM_AMOUNT}`);
+const initialTargetHrefsLength = targetHrefs.length;
+if (!initialTargetHrefsLength)
+    throw new Error('targetHref can\'t be empty!');
+else if (initialTargetHrefsLength > ITEM_AMOUNT)
+    targetHrefs = targetHrefs.slice(0, ITEM_AMOUNT);
+const targetHrefsLength = targetHrefs.length;
 
-let nextPageSrcIndex = targetHrefs[ITEM_AMOUNT].pageIndex;
+console.log(`domain=${domain}, title=${title}, pageIndex=[${pageSrcIndex} -> ${pageIndex}], DURATION=${DURATION}`);
+console.log(`ITEM_AMOUNT=${ITEM_AMOUNT}, targetHrefsLength=${targetHrefsLength}`);
+
 let notGetCounter = 0;
-targetHrefs = targetHrefs.slice(0, ITEM_AMOUNT);
 const promises = targetHrefs.map(function (href, index) {
     let url = href.href;
     if (url.indexOf('http') === -1)
@@ -58,13 +71,20 @@ const promises = targetHrefs.map(function (href, index) {
 });
 // const promises = hrefs.slice(item, itemIndex + ITEM_AMOUNT).map((href, index) => getUrl(href, index));
 Promise.all(promises).then(function (results) {
-    if (notGetCounter === ITEM_AMOUNT) {
+    if (notGetCounter === targetHrefsLength) {
         console.log('None src got! Setting.json noupdated.');
         return;
     }
 
-    if (notGetCounter)
+    const lastTargetHref = targetHrefs[targetHrefsLength - 1];
+    let nextPageSrcIndex;
+    if (notGetCounter)  // have null or error
         nextPageSrcIndex = targetHrefs.find(href => !href.done).pageIndex;
+    else if (lastTargetHref.itemIndex === 19) // not have null or error, check the pageIndex of the last href item
+        nextPageSrcIndex = lastTargetHref.pageIndex + 1;
+    else
+        nextPageSrcIndex = lastTargetHref.pageIndex;
+    
     chosenSeries.pageSrcIndex = nextPageSrcIndex;
     setting.lastSrcModified = new Date().toUTCString();
 
@@ -72,11 +92,14 @@ Promise.all(promises).then(function (results) {
         const hrefFile = `porn/${title}Href${hrefs[0].pageIndex}.txt`;
         writeFile(hrefFile, JSON.stringify(hrefs, null, 2)).then(info => console.log(info), errorHandler);
     });
-    writeFile(srcFile, results.join('\r\n')).then(info => console.log(info, 'done!'), errorHandler);
+    writeFile(srcFile, results.join('\r\n')).then(info => {
+        console.log(info);
+        console.log(`Done, got ${targetHrefsLength - notGetCounter} srcs!`);
+    }, errorHandler);
     unlink(tempFile).catch(errorHandler);
     writeFile(settingFile, JSON.stringify(setting, null, 2)).then(function(info) {
         console.log(info);
-        if (nextPageSrcIndex > pageIndex)
+        if (nextPageSrcIndex > pageSrcIndex)
             console.log(`pageSrcIndex has updated to ${nextPageSrcIndex}.`);
         else
             console.log('pageSrcIndex noupdated!');
