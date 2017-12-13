@@ -1,0 +1,31 @@
+环境: python3.6 win10_64
+
+安装指南链接
+http://blog.csdn.net/yxpyxp12341234/article/details/70436854
+
+
+1. whl文件下载
+
+1.1 numpy
+https://www.lfd.uci.edu/~gohlke/pythonlibs/
+
+ctrl+F 向下找到NumPy (Numpy+MKL)
+numpy-1.13.3+mkl-cp36-cp36m-win_amd64.whl
+
+1.2 scipy
+https://github.com/scipy/scipy/releases
+
+找到 scipy-1.0.0-cp36-none-win_amd64.whl
+
+1.3 matplotlib
+https://pypi.python.org/pypi/matplotlib
+
+找到 matplotlib-2.1.1-cp36-cp36m-win_amd64.whl (md5)
+
+
+2. 安装上述三个whl文件
+pip install xxx.whl
+
+安装numpy(注意安装的是numpy+mkl的)
+安装scipy
+安装matplotlib
