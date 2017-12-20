@@ -1,5 +1,6 @@
 import wx
 import json
+import time
 
 import crawler
 import myUtils
@@ -85,7 +86,7 @@ class MyFrame(wx.Frame):
         self.StatusDisplay('reading hrefs from %s...' % table, 'hrefs reading...')
         hrefs = pornDB.readAllHrefs(table)
         hrefs_length = len(hrefs)
-        self.StatusDisplay('read hrefs from %s, length is %d\n' % (table, hrefs_length), 'hrefs read')
+        self.StatusDisplay('read hrefs from %s, length=%d\n' % (table, hrefs_length), 'hrefs read')
 
         all_finished = page_index > last_page
         if hrefs_length == 0 and all_finished:
@@ -93,7 +94,7 @@ class MyFrame(wx.Frame):
             return
 
         if hrefs_length < item_amount and not all_finished:
-            self.StatusDisplay('hrefs is not enough, get hrefs from net...', 'hrefs getting...')
+            self.StatusDisplay('hrefs is not enough, get hrefs from net...\n', 'hrefs getting...')
             n = (item_amount - hrefs_length) // ITEM_AMOUNT_PERPAGE + 1
             crawler_hrefs = []
             
@@ -115,6 +116,7 @@ class MyFrame(wx.Frame):
 
             serie['itemId'] = initial_id
             serie['pageIndex'] = page_index
+            setting['lastModified'] = time.asctime()
             myUtils.write(SETTING_FILENAME, setting)
             self.StatusDisplay('in %s, itemId updated to %d, pageIndex updated to %d\n' % (table, initial_id, page_index))
 
@@ -124,6 +126,7 @@ class MyFrame(wx.Frame):
 
         hrefs = hrefs[:item_amount]
         hrefs_length = len(hrefs)
+        self.StatusDisplay('handle hrefs done, length=%d\n' % hrefs_length)
 
         self.StatusDisplay('get src begins...\n', 'src getting...')
         counter = 0
@@ -153,13 +156,13 @@ class MyFrame(wx.Frame):
             self.StatusDisplay('delete hrefs begins...', 'hrefs deleting...')
             pornDB.deleteHrefs(ids, table)
             self.StatusDisplay('deleted hrefs\n', 'hrefs deleted')
+            self.copyBtn.Enable()
         
         self.StatusDisplay('All done!', 'done')
         wx.MessageBox('Done! Got %d srcs!' % counter_get, 'info', wx.OK | wx.ICON_INFORMATION)
 
         self.getBtn.Enable()
         self.setBtn.Enable()
-        self.copyBtn.Enable()
     
     def error_callback(self, e):
         self.StatusDisplay('%s' % e)
@@ -281,6 +284,7 @@ class MyDialog(wx.Dialog):
                 setting_widgets[w].SetValue(domain)
             else:
                 setting[w.upper()] = int(setting_widgets[w].GetValue())
+        setting['lastModified'] = time.asctime()
         myUtils.write(SETTING_FILENAME, setting)
         wx.MessageBox('setting.json saved successfully', 'info', wx.OK | wx.ICON_INFORMATION)
 

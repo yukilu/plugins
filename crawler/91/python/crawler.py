@@ -15,6 +15,7 @@ if cookie:
     headers = { 'User-Agent': user_agent, 'Cookie': cookie }
 else:
     headers = { 'User-Agent': user_agent }
+    print('no cookie')
 
 def getHref(base_url, domain, page_index, initial_id):
     domain_length = len(domain)
