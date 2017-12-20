@@ -8,11 +8,16 @@ def find(target, array, property):
             return o
 
 def read(filename, type='json'):
-    with open(filename) as f:
-        if type == 'json':
-            data = json.load(f)
-        elif type == 'string':
-            data = f.read()
+    try:
+        with open(filename) as f:
+            if type == 'json':
+                data = json.load(f)
+            elif type == 'string':
+                data = f.read()
+    except FileNotFoundError as e:
+        print(e)
+        return
+
     return data
 
 def write(filename, data, type='json'):

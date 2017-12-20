@@ -11,7 +11,6 @@ ITEM_AMOUNT_PERPAGE = 20
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self.setting = myUtils.read(SETTING_FILENAME)
         self.InitUI()
     
     def InitUI(self):
@@ -31,8 +30,6 @@ class MyFrame(wx.Frame):
         setBtn = wx.Button(panel, label='Setting')
         self.setBtn = setBtn
         setBtn.Bind(wx.EVT_BUTTON, self.OnSet)
-        actBtn = wx.Button(panel, label='Account')
-        self.actBtn = actBtn
         dbBtn = wx.Button(panel, label='Database')
         dbBtn.Bind(wx.EVT_BUTTON, self.OnDB)
         self.dbBtn = dbBtn
@@ -40,7 +37,6 @@ class MyFrame(wx.Frame):
         hbox.Add(getBtn, proportion=0, flag=wx.RIGHT, border=10)
         hbox.Add(copyBtn, proportion=0, flag=wx.RIGHT, border=10)
         hbox.Add(setBtn, proportion=0, flag=wx.RIGHT, border=10)
-        hbox.Add(actBtn, proportion=0, flag=wx.RIGHT, border=10)
         hbox.Add(dbBtn, proportion=0)
 
         tc = wx.TextCtrl(panel, style=wx.TE_MULTILINE | wx.TE_READONLY)
@@ -53,7 +49,7 @@ class MyFrame(wx.Frame):
 
         panel.SetSizer(vbox)
 
-        self.SetSize((800, 600))
+        self.SetSize((900, 600))
         self.SetTitle('91porn Crawler')
         self.Center()
         self.Show(True)
@@ -63,7 +59,7 @@ class MyFrame(wx.Frame):
         self.setBtn.Disable()
         self.copyBtn.Disable()
 
-        setting = self.setting
+        setting = myUtils.read(SETTING_FILENAME)
         statusbar = self.statusbar
         item_amount = setting['ITEM_AMOUNT']
         domain = setting['domain']
@@ -136,8 +132,8 @@ class MyFrame(wx.Frame):
         for href in hrefs:
             counter += 1
             url = domain + href['href']
-            self.StatusDisplay('get %s begins...' % url)
             self.StatusDisplay('id=%d, itemIndex=%d, pageIndex=%d, counter=%d' % (href['id'], href['itemIndex'], href['pageIndex'], counter))
+            self.StatusDisplay('get %s begins...' % url)
             src = crawler.getSrc(url, self.error_callback)
             if src:
                 counter_get += 1
@@ -148,6 +144,8 @@ class MyFrame(wx.Frame):
         self.StatusDisplay('get %d srcs' % counter_get, 'src got')
         srcTxt = '\n'.join(srcs)
         self.srcTxt = srcTxt
+
+        self.StatusDisplay(srcTxt + '\n')
 
         if counter_get:
             ids = myUtils.filterIds(hrefs)
@@ -168,7 +166,7 @@ class MyFrame(wx.Frame):
     
     def OnCopy(self, e):
         data = wx.TextDataObject()
-        data.SetText(self.srcs)
+        data.SetText(self.srcTxt)
         if wx.TheClipboard.Open():
             wx.TheClipboard.SetData(data)
             wx.TheClipboard.Close()
@@ -182,7 +180,7 @@ class MyFrame(wx.Frame):
         dial.Destroy()
     
     def OnDB(self, e):
-        setting = self.setting
+        setting = myUtils.read(SETTING_FILENAME)
         table = setting['series'][setting['chosen']]['title']
         dial = DatabaseDialog(table, None, title='Database')
         dial.ShowModal()

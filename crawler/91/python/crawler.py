@@ -2,7 +2,19 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from pyquery import PyQuery as pq
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36'}
+import myUtils
+
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36'
+
+cookie_json = myUtils.read('cookie.json')
+cookie = None
+if cookie_json and 'cookie' in cookie_json:
+    cookie = cookie_json['cookie']
+
+if cookie:
+    headers = { 'User-Agent': user_agent, 'Cookie': cookie }
+else:
+    headers = { 'User-Agent': user_agent }
 
 def getHref(base_url, domain, page_index, initial_id):
     domain_length = len(domain)
