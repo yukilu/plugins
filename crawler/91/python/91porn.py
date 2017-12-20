@@ -74,27 +74,28 @@ class MyFrame(wx.Frame):
         path = serie['path']
 
         self.StatusDisplay('script begins...', 'ready')
+        self.StatusDisplay('Now time is %s\n' % time.asctime())
         self.StatusDisplay('item_amount=%d, domain=%s, chosen=%d' % (item_amount, domain, chosen))
         self.StatusDisplay('inital_id=%d, page_index=%d, last_page=%d\n' % (initial_id, page_index, last_page))
 
         if not initial_id:
-            self.StatusDisplay('initializing %s...' % table, '%s initializing' % table)
+            self.StatusDisplay('initializing table[%s...]' % table, 'table[%s] initializing' % table)
             pornDB.initialDB(table)
             initial_id += 1
-            self.StatusDisplay('initialized %s' % table, '%s initialized\n' % table)
+            self.StatusDisplay('initialized table[%s]\n' % table, 'table[%s] initialized\n' % table)
         
-        self.StatusDisplay('reading hrefs from %s...' % table, 'hrefs reading...')
+        self.StatusDisplay('reading hrefs from table[%s]...' % table, 'hrefs reading...')
         hrefs = pornDB.readAllHrefs(table)
         hrefs_length = len(hrefs)
-        self.StatusDisplay('read hrefs from %s, length=%d\n' % (table, hrefs_length), 'hrefs read')
+        self.StatusDisplay('read hrefs from table[%s], length=%d\n' % (table, hrefs_length), 'hrefs read')
 
         all_finished = page_index > last_page
         if hrefs_length == 0 and all_finished:
-            wx.MessageBox('%s all finished!' % table, 'info', wx.OK | wx.ICON_INFORMATION)
+            wx.MessageBox('table[%s] all finished!' % table, 'info', wx.OK | wx.ICON_INFORMATION)
             return
 
         if hrefs_length < item_amount and not all_finished:
-            self.StatusDisplay('hrefs is not enough, get hrefs from net...\n', 'hrefs getting...')
+            self.StatusDisplay('hrefs is not enough, get hrefs from %s...\n' % domain, 'hrefs getting...')
             n = (item_amount - hrefs_length) // ITEM_AMOUNT_PERPAGE + 1
             crawler_hrefs = []
             
@@ -106,29 +107,30 @@ class MyFrame(wx.Frame):
                 page_index += 1
                 crawler_hrefs += c_hrefs
                 if page_index > last_page:
-                    self.StatusDisplay('have met the end of %s\n' % table)
+                    self.StatusDisplay('have met the end of table[%s]\n' % table)
                     break
             
-            self.StatusDisplay('got hrefs from net', 'hrefs got')
-            self.StatusDisplay('adding hrefs to %s' % table, 'hrefs adding...')
+            self.StatusDisplay('got hrefs from %s' % domain, 'hrefs got')
+            self.StatusDisplay('adding hrefs to table[%s]' % table, 'hrefs adding...')
             pornDB.addHrefs(crawler_hrefs, table)
-            self.StatusDisplay('added hrefs to %s successfully\n', 'hrefs added')
+            self.StatusDisplay('added hrefs to table[%s] successfully\n' % table, 'hrefs added')
 
             serie['itemId'] = initial_id
             serie['pageIndex'] = page_index
             setting['lastModified'] = time.asctime()
             myUtils.write(SETTING_FILENAME, setting)
-            self.StatusDisplay('in %s, itemId updated to %d, pageIndex updated to %d\n' % (table, initial_id, page_index))
+            self.StatusDisplay('in table[%s], itemId updated to %d, pageIndex updated to %d\n' % (table, initial_id, page_index))
 
-            self.StatusDisplay('read hrefs from %s again...' % table, 'hrefs reading again...')
+            self.StatusDisplay('read hrefs from table[%s] again...' % table, 'hrefs reading again...')
             hrefs = pornDB.readAllHrefs(table)
-            self.StatusDisplay('read hrefs from %s, length is %d\n' % (table, hrefs_length), 'hrefs read again')
+            hrefs_length = len(hrefs)
+            self.StatusDisplay('read hrefs from table[%s], length is %d\n' % (table, hrefs_length), 'hrefs read again')
 
         hrefs = hrefs[:item_amount]
         hrefs_length = len(hrefs)
-        self.StatusDisplay('handle hrefs done, length=%d\n' % hrefs_length)
+        self.StatusDisplay('handle hrefs in table[%s] done, length=%d\n' % (table, hrefs_length))
 
-        self.StatusDisplay('get src begins...\n', 'src getting...')
+        self.StatusDisplay('get src in table[%s] begins...\n' % table, 'src getting...')
         counter = 0
         counter_get = 0
         srcs = []
@@ -144,7 +146,7 @@ class MyFrame(wx.Frame):
                 srcs.append(src)
             self.StatusDisplay('got %s' % url)
             self.StatusDisplay('%s\n' % src)
-        self.StatusDisplay('get %d srcs' % counter_get, 'src got')
+        self.StatusDisplay('got %d srcs from table[%s]' % (counter_get, table), 'src got')
         srcTxt = '\n'.join(srcs)
         self.srcTxt = srcTxt
 
@@ -152,14 +154,15 @@ class MyFrame(wx.Frame):
 
         if counter_get:
             ids = myUtils.filterIds(hrefs)
-            self.StatusDisplay('ids prepared to delete is %s' % ids)
-            self.StatusDisplay('delete hrefs begins...', 'hrefs deleting...')
+            self.StatusDisplay('ids prepared to delete in table[%s] is %s' % (table, ids))
+            self.StatusDisplay('delete hrefs from table[%s] begins...' % table, 'hrefs deleting...')
             pornDB.deleteHrefs(ids, table)
-            self.StatusDisplay('deleted hrefs\n', 'hrefs deleted')
+            self.StatusDisplay('deleted hrefs from table[%s]\n' % table, 'hrefs deleted')
             self.copyBtn.Enable()
         
-        self.StatusDisplay('All done!', 'done')
-        wx.MessageBox('Done! Got %d srcs!' % counter_get, 'info', wx.OK | wx.ICON_INFORMATION)
+        self.StatusDisplay('All done! Enjoy!', 'done')
+        self.StatusDisplay('Now time is %s' % time.asctime())
+        wx.MessageBox('Enjoy! Got %d srcs in table[%s]!' % (counter_get, table), 'info', wx.OK | wx.ICON_INFORMATION)
 
         self.getBtn.Enable()
         self.setBtn.Enable()
@@ -198,6 +201,7 @@ class MyDialog(wx.Dialog):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.setting = myUtils.read(SETTING_FILENAME)
+        self.serieLabels = ['index', 'title', 'itemId', 'pageIndex', 'lastPage', 'path']
         self.setting_widgets = {}
         self.InitUI()
     
@@ -237,7 +241,7 @@ class MyDialog(wx.Dialog):
         sbox = wx.StaticBox(panel, label='ChosenSeries')
         ssizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
 
-        serieLabels = ['index', 'title', 'itemId', 'pageIndex', 'lastPage', 'path']
+        serieLabels = self.serieLabels
         serieLabels_length = len(serieLabels)
         for serieLabel in serieLabels:
             hbox = wx.BoxSizer()
@@ -269,7 +273,7 @@ class MyDialog(wx.Dialog):
         setting_widgets = self.setting_widgets
         serie = myUtils.find(e.GetString(), setting['series'], 'title')
         self.selected_serie_index = serie['index']
-        for p in ['index', 'title', 'pageIndex', 'lastPage', 'path']:
+        for p in self.serieLabels:
             setting_widgets[p].SetLabel(str(serie[p]))
     
     def OnSave(self, e):
