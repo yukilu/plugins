@@ -60,8 +60,15 @@ def getSrc(url, error_callback):
         if node:
             value = node.attr(node_attr)
     except HTTPError as e:
+        print(e)
         error_callback(e)
     except URLError as e:
+        print(e)
         error_callback(e)
+    except ConnectionError as e:
+        print(e)
+        error_callback(e)
+    except:
+        print('other net error')
 
     return value
