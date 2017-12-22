@@ -15,7 +15,7 @@ def read(filename, file_type='json'):
         data = readFile(filename, file_type=file_type)
     except:
         bakfilename = '%s_bak%s' % os.path.splitext(filename)
-        print('read %s error, read %s instead' % (filename, bakfilename))
+        print(f'read {filename} error, read {bakfilename} instead')
         data = readFile(bakfilename, file_type=file_type)
     
     return data

@@ -1,6 +1,8 @@
 import wx
 import json
 import time
+from threading import Thread
+from wx.lib.pubsub import pub
 
 import crawler
 import myUtils
@@ -61,13 +63,21 @@ class MyFrame(wx.Frame):
         self.SetTitle('91porn Crawler')
         self.Center()
         self.Show(True)
-    
+
+        pub.subscribe(self.updateDisplay, 'update')
+
+    def SendMsg(self, msg1, msg2=None):
+        wx.CallAfter(pub.sendMessage, 'update', msg=(msg1, msg2))
+
     def OnGetClick(self, e):
+        t = Thread(target=self.getClick)
+        t.start()
+
+    def getClick(self):
         self.getBtn.Disable()
         self.setBtn.Disable()
         self.bakBtn.Disable()
 
-        statusbar = self.statusbar
         setting = myUtils.read(SETTING_FILENAME)
         duration = setting['DURATION']
         item_amount = setting['ITEM_AMOUNT']
@@ -81,85 +91,89 @@ class MyFrame(wx.Frame):
         last_page = serie['lastPage']
         path = serie['path']
 
-        self.StatusDisplay('script begins...', 'ready')
-        self.StatusDisplay('Now time is %s\n' % time.asctime())
-        self.StatusDisplay('duration=%d, item_amount=%d, domain=%s, chosen=%d' % (duration, item_amount, domain, chosen))
-        self.StatusDisplay('inital_id=%d, page_index=%d, last_page=%d\n' % (initial_id, page_index, last_page))
+        self.SendMsg('script begins...', 'ready')
+        self.SendMsg(f'Now time is {time.asctime()}\n')
+        self.SendMsg(f'duration={duration}, item_amount={item_amount}, domain={domain}, chosen={chosen}')
+        self.SendMsg(f'inital_id={initial_id}, page_index={page_index}, last_page={last_page}\n')
 
         if not initial_id:
-            self.StatusDisplay('initializing table[%s...]' % table, 'table[%s] initializing' % table)
+            self.SendMsg(f'initializing table[{table}...]', f'table[{table}] initializing')
             pornDB.initialDB(table)
             initial_id += 1
-            self.StatusDisplay('initialized table[%s]\n' % table, 'table[%s] initialized\n' % table)
+            self.SendMsg(f'initialized table[{table}]\n', f'table[{table}] initialized\n')
         
-        self.StatusDisplay('reading hrefs from table[%s]...' % table, 'hrefs reading...')
+        self.SendMsg(f'reading hrefs from table[{table}]...', 'hrefs reading...')
         hrefs = pornDB.readAllHrefs(table)
         hrefs_firstread_length = len(hrefs)
-        self.StatusDisplay('read hrefs from table[%s], length=%d\n' % (table, hrefs_firstread_length), 'hrefs read')
+        self.SendMsg(f'read hrefs from table[{table} length={hrefs_firstread_length}\n', 'hrefs read')
 
         all_finished = page_index > last_page
         if hrefs_firstread_length == 0 and all_finished:
-            wx.MessageBox('table[%s] all finished!' % table, 'info', wx.OK | wx.ICON_INFORMATION)
+            wx.MessageBox(f'table[{table}] all finished!', 'info', wx.OK | wx.ICON_INFORMATION)
             return
 
         if hrefs_firstread_length < item_amount and not all_finished:
             total = hrefs_firstread_length
-            self.StatusDisplay('hrefs is not enough, get hrefs from %s...\n' % domain, 'hrefs getting...')
+            self.SendMsg(f'hrefs is not enough, get hrefs from {domain}...\n', 'hrefs getting...')
             crawler_hrefs = []
             
             while total < item_amount and page_index <= last_page:
-                self.StatusDisplay('get %s%s begins...' % (domain, path))
+                self.SendMsg(f'get {domain}{path} [page={page_index}] begins...')
                 c_hrefs = crawler.getHref(path, domain, page_index , initial_id)
-                self.StatusDisplay('got %s%s\n' % (domain, path))
+                self.SendMsg(f'got {domain}{path} [page={page_index}]\n')
                 c_hrefs_length = len(c_hrefs)
                 total += c_hrefs_length
                 initial_id += c_hrefs_length
                 page_index += 1
                 crawler_hrefs += c_hrefs
+
+                if duration:
+                    time.sleep(duration)
             
-            self.StatusDisplay('got hrefs from %s\n' % domain, 'hrefs got')
-            self.StatusDisplay('adding hrefs to table[%s]' % table, 'hrefs adding...')
+            self.SendMsg(f'got hrefs from {domain}\n', 'hrefs got')
+            self.SendMsg(f'adding hrefs to table[{table}]', 'hrefs adding...')
             pornDB.addHrefs(crawler_hrefs, table)
-            self.StatusDisplay('added hrefs to table[%s] successfully\n' % table, 'hrefs added')
+            self.SendMsg(f'added hrefs to table[{table}] successfully\n', 'hrefs added')
 
             serie['itemId'] = initial_id
             serie['pageIndex'] = page_index
             setting['lastModified'] = time.asctime()
             myUtils.write(SETTING_FILENAME, setting, indent=2)
-            self.StatusDisplay('in table[%s], itemId updated to %d, pageIndex updated to %d\n' % (table, initial_id, page_index))
+            self.SendMsg(f'in table[{table}], itemId updated to {initial_id}, pageIndex updated to {page_index}\n')
 
-            self.StatusDisplay('read hrefs from table[%s] again...' % table, 'hrefs reading again...')
+            self.SendMsg(f'read hrefs from table[{table}] again...', 'hrefs reading again...')
             hrefs = pornDB.readAllHrefs(table)
             hrefs_length = len(hrefs)
-            self.StatusDisplay('read hrefs from table[%s], length is %d\n' % (table, hrefs_length), 'hrefs read again')
+            self.SendMsg(f'read hrefs from table[{table}], length is {hrefs_length}\n', 'hrefs read again')
 
         hrefs = hrefs[:item_amount]
         hrefs_length = len(hrefs)
-        self.StatusDisplay('handle hrefs in table[%s] done, length=%d\n' % (table, hrefs_length))
+        self.SendMsg(f'handle hrefs in table[{table}] done, length={hrefs_length}\n')
 
-        self.StatusDisplay('get src in table[%s] begins...\n' % table, 'src getting...')
+        self.SendMsg(f'get src in table[{table}] begins...\n', 'src getting...')
         counter = 0
         counter_get = 0
         srcs = []
         for href in hrefs:
             counter += 1
             url = domain + href['href']
-            self.StatusDisplay('id=%d, itemIndex=%d, pageIndex=%d, counter=%d' % (href['id'], href['itemIndex'], href['pageIndex'], counter))
-            self.StatusDisplay('get %s begins...' % url)
+            self.SendMsg(f'id={href["id"]}, itemIndex={href["itemIndex"]}, pageIndex={href["pageIndex"]}, counter={counter}')
+            self.SendMsg(f'get {url} begins...')
             src = crawler.getSrc(url, self.error_callback)
 
             if src:
                 counter_get += 1
                 href['done'] = True
                 srcs.append(src)
-            self.StatusDisplay('got %s' % url)
-            self.StatusDisplay('%s\n' % src)
+            self.SendMsg(f'got {url}')
+            self.SendMsg(f'{src}\n')
 
             if duration:
                 time.sleep(duration)
 
-        self.StatusDisplay('filter srcs from table[%s] begins...' % table, 'srcs filtering...')
+        self.SendMsg(f'filter srcs from table[{table}] begins...', 'srcs filtering...')
         mp4s = myUtils.read(DOWNLOADED_FILENAME)
+        self.SendMsg(f'mp4s has been loaded from {DOWNLOADED_FILENAME}, mp4s.length={len(mp4s)}')
         srcs_filtered = []
         mp4s_repeat = []
         mp4s_new = []
@@ -171,50 +185,59 @@ class MyFrame(wx.Frame):
                 srcs_filtered.append(src)
             else:
                 mp4s_repeat.append(mp4)
-                self.StatusDisplay('%d.mp4 has been downloaded before!' % mp4)
-                self.StatusDisplay('(src = %s)' % src)
-        self.StatusDisplay('filtered srcs from table[%s]\n' % table, 'srcs filtered')
+                self.SendMsg(f'{mp4}.mp4 has been downloaded before!')
+                self.SendMsg(f'(src = {src})')
+        self.SendMsg(f'filtered srcs from table[{table}]\n', 'srcs filtered')
 
         counter_new = len(mp4s_new)
         counter_repeat = len(mp4s_repeat)
         if counter_repeat:
-            self.StatusDisplay('%s repeated\n' % mp4s_repeat)
+            self.SendMsg(f'{mp4s_repeat} repeated\n')
         else:
-            self.StatusDisplay('none mp4 repeated\n')
+            self.SendMsg('none mp4 repeated\n')
 
-        self.StatusDisplay('%s to be wrote into %s' %(mp4s_new, DOWNLOADED_FILENAME))
-        self.StatusDisplay('write new mp4s into %s...' % DOWNLOADED_FILENAME, 'mp4s writing...')
-        myUtils.write(DOWNLOADED_FILENAME, mp4s)
-        self.StatusDisplay('write new mp4s into %s successfully!\n' % DOWNLOADED_FILENAME, 'mp4s wrote')
+        if counter_new:
+            self.SendMsg(f'{mp4s_new} to be wrote into {DOWNLOADED_FILENAME}')
+            self.SendMsg(f'write new mp4s into {DOWNLOADED_FILENAME}...', 'mp4s writing...')
+            myUtils.write(DOWNLOADED_FILENAME, mp4s)
+            self.SendMsg(f'write new mp4s into {DOWNLOADED_FILENAME} successfully!', 'mp4s wrote')
+            self.SendMsg(f'now mp4s.length={len(mp4s)}\n')
 
-        self.StatusDisplay('%s to be downloaded' % mp4s_new)
-        self.StatusDisplay('got %d srcs(total %d, repeated %d) from table[%s]' % (counter_new, counter_get, counter_repeat, table),
-            'src got')
+            self.SendMsg(f'{mp4s_new} to be downloaded')
+            self.SendMsg(f'got {counter_new} srcs(total {counter_get}, repeated {counter_repeat}) from table[{table}]',
+                'src got')
+            box_msg = f'Enjoy! Got {counter_new} srcs(total {counter_get}, repeated {counter_repeat}) from table[{table}]'
 
-        srcTxt = '\n'.join(srcs_filtered)
-        myUtils.write(SRC_FILENAME_TEMPLATE % myUtils.getTimeStamp(), srcTxt, file_type='string')
-        self.srcTxt = srcTxt
-        self.StatusDisplay(srcTxt + '\n')
+            srcTxt = '\n'.join(srcs_filtered)
+            myUtils.write(SRC_FILENAME_TEMPLATE % myUtils.getTimeStamp(), srcTxt, file_type='string')
+            self.srcTxt = srcTxt
+            self.SendMsg(f'{srcTxt}\n')
+
+            self.copyBtn.Enable()
+        else:
+            box_msg = 'Sorry! Got nothing!'
+            self.SendMsg('got no new mp4s\n')
+            self.SendMsg('nothing to be downloaded')
+
+        
 
         if counter_get:
             ids = myUtils.filterIds(hrefs)
-            self.StatusDisplay('ids prepared to delete in table[%s] is %s' % (table, ids))
-            self.StatusDisplay('delete hrefs from table[%s] begins...' % table, 'hrefs deleting...')
+            self.SendMsg(f'{ids} prepared to delete in table[{table}]')
+            self.SendMsg(f'delete hrefs from table[{table}] begins...', 'hrefs deleting...')
             pornDB.deleteHrefs(ids, table)
-            self.StatusDisplay('deleted hrefs from table[%s]\n' % table, 'hrefs deleted')
-            self.copyBtn.Enable()
+            self.SendMsg(f'deleted hrefs from table[{table}]\n', 'hrefs deleted')
         
-        self.StatusDisplay('All done! Enjoy!', 'done')
-        self.StatusDisplay('Now time is %s' % time.asctime())
-        wx.MessageBox('Enjoy! Got %d srcs(total %d, repeated %d) from table[%s]' % (counter_new, counter_get, counter_repeat, table),
-            'info', wx.OK | wx.ICON_INFORMATION)
+        self.SendMsg('All done! Enjoy!', 'done')
+        self.SendMsg(f'Now time is {time.asctime()}')
+        wx.MessageBox(box_msg, 'info', wx.OK | wx.ICON_INFORMATION)
 
         self.getBtn.Enable()
         self.setBtn.Enable()
         self.bakBtn.Enable()
     
     def error_callback(self, e):
-        self.StatusDisplay('%s' % e)
+        self.StatusDisplay(f'%s{e}')
     
     def OnCopy(self, e):
         data = wx.TextDataObject()
@@ -238,20 +261,22 @@ class MyFrame(wx.Frame):
     
     def OnBackup(self, e):
         dial = wx.MessageDialog(None,
-            'Are you sure to backup %s and %s, this will cover old backup files' % (SETTING_FILENAME, DOWNLOADED_FILENAME),
+            f'Are you sure to backup {SETTING_FILENAME} and {DOWNLOADED_FILENAME}, this will cover old backup files',
             'Warn', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
         ret = dial.ShowModal()
         if ret == wx.ID_NO:
             return
         
-        self.StatusDisplay('back up %s and %s begins...' % (SETTING_FILENAME, DOWNLOADED_FILENAME), 'backuping...')
+        self.StatusDisplay(f'back up {SETTING_FILENAME} and {DOWNLOADED_FILENAME} begins...', 'backuping...')
         myUtils.backup(SETTING_FILENAME, indent=2)
         myUtils.backup(DOWNLOADED_FILENAME)
-        self.StatusDisplay('back up %s and %s successfully!' % (SETTING_FILENAME, DOWNLOADED_FILENAME),
-            'backup successfully')
-        wx.MessageBox('back up %s and %s successfully!' % (SETTING_FILENAME, DOWNLOADED_FILENAME),
-            'info', wx.OK | wx.ICON_INFORMATION)
+        self.StatusDisplay(f'back up {SETTING_FILENAME} and {DOWNLOADED_FILENAME} successfully!', 'backup successfully')
+        wx.MessageBox(f'back up {SETTING_FILENAME} and {DOWNLOADED_FILENAME} successfully!', 'info',
+            wx.OK | wx.ICON_INFORMATION)
     
+    def updateDisplay(self, msg):
+        self.StatusDisplay(*msg)
+
     def StatusDisplay(self, txt, statusTxt=None):
         self.tc.AppendText(txt + '\n')
         if statusTxt:
@@ -324,7 +349,7 @@ class MyDialog(wx.Dialog):
 
         panel.SetSizer(grid)
 
-        self.SetSize(505, 480)
+        self.SetSize(515, 480)
         self.Center()
         self.Show(True)
     
@@ -400,38 +425,37 @@ class DatabaseDialog(wx.Dialog):
         table = self.table
         selected_serie = self.selected_serie
 
-        dial = wx.MessageDialog(None, 'Are you sure to reset table[%s]' % table, 'Warn',
+        dial = wx.MessageDialog(None, f'Are you sure to reset table[{table}]', 'Warn',
             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
         ret = dial.ShowModal()
         if ret == wx.ID_NO:
             return
 
         if not selected_serie['itemId']:
-            wx.MessageBox('table[%s] has not been initialized' % table, 'info', wx.OK | wx.ICON_INFORMATION)
+            wx.MessageBox(f'table[{table}] has not been initialized', 'info', wx.OK | wx.ICON_INFORMATION)
             return
         
-        self.tc.SetValue('table=%s, length=0' % self.table)
+        self.tc.SetValue(f'table={table}, length=0')
         pornDB.clearHrefs(table)
 
         selected_serie['itemId'] = 1
         selected_serie['pageIndex'] = 1
         setting['lastModified'] = time.asctime()
         myUtils.write(SETTING_FILENAME, setting, indent=2)
-        wx.MessageBox('table[%s] has been reset!' % table, 'info', wx.OK | wx.ICON_INFORMATION)
+        wx.MessageBox(f'table[{table}] has been reset!', 'info', wx.OK | wx.ICON_INFORMATION)
 
     def GetTxt(self):
         table = self.table
         
         if not self.selected_serie['itemId']:
-            return 'table[%s] has not initialized' % table
+            return f'table[{table}] has not initialized'
 
         hrefs = pornDB.readAllHrefs(table)
         hrefs_length = len(hrefs)
         for href in hrefs:
             del href['done']
         txt = myUtils.dictArray2str(hrefs)
-        tcTxt = 'table=%s, length=%d\n\n%s' % (table, hrefs_length, txt)
-        return tcTxt
+        return f'table={table}, length={hrefs_length}\n\n{txt}'
 
 if __name__ == '__main__':
     app = wx.App()

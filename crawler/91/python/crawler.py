@@ -50,7 +50,7 @@ def getSrc(url, error_callback):
     selector = 'source'
     node_attr = 'src'
 
-    src = None
+    value = None
     try:
         req = Request(url=url, headers=headers)
         html = urlopen(req).read()
