@@ -20,7 +20,7 @@
 二、设置
 
 1.cookie.json
-(不设置一天能爬11部，设置cookie能大概多下个二三十部)
+(不设置一天能爬11部，设置cookie能大概能爬五六十部)
 注册91账号(免费)，按F12，控制台输入document.cookie，将其中的内容全部复制到cookie.json文件中里的cookie值后面
 
 2.setting.json
