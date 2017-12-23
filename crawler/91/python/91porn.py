@@ -109,7 +109,13 @@ class MyFrame(wx.Frame):
 
         all_finished = page_index > last_page
         if hrefs_firstread_length == 0 and all_finished:
-            wx.MessageBox(f'table[{table}] all finished!', 'info', wx.OK | wx.ICON_INFORMATION)
+            self.SendMsg(f'table[{table}] all finished! You can reset it and get srcs a few days later')
+            wx.MessageBox(f'table[{table}] all finished! You can reset it and get srcs a few days later',
+                'info', wx.OK | wx.ICON_INFORMATION)
+            
+            self.getBtn.Enable()
+            self.setBtn.Enable()
+            self.bakBtn.Enable()
             return
 
         if hrefs_firstread_length < item_amount and not all_finished:
