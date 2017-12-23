@@ -170,65 +170,67 @@ class MyFrame(wx.Frame):
 
             if duration:
                 time.sleep(duration)
-
-        self.SendMsg(f'filter srcs from table[{table}] begins...', 'srcs filtering...')
-        mp4s = myUtils.read(DOWNLOADED_FILENAME)
-        self.SendMsg(f'mp4s has been loaded from {DOWNLOADED_FILENAME}, mp4s.length={len(mp4s)}')
-        srcs_filtered = []
-        mp4s_repeat = []
-        mp4s_new = []
-        for src in srcs:
-            mp4 = myUtils.matchMp4(src)
-            is_inserted = myUtils.insertIntoOrdered(mp4, mp4s)
-            if is_inserted:
-                mp4s_new.append(mp4)
-                srcs_filtered.append(src)
-            else:
-                mp4s_repeat.append(mp4)
-                self.SendMsg(f'{mp4}.mp4 has been downloaded before!')
-                self.SendMsg(f'(src = {src})')
-        self.SendMsg(f'filtered srcs from table[{table}]\n', 'srcs filtered')
-
-        counter_new = len(mp4s_new)
-        counter_repeat = len(mp4s_repeat)
-        if counter_repeat:
-            self.SendMsg(f'{mp4s_repeat} repeated\n')
-        else:
-            self.SendMsg('none mp4 repeated\n')
-
-        if counter_new:
-            self.SendMsg(f'{mp4s_new} to be wrote into {DOWNLOADED_FILENAME}')
-            self.SendMsg(f'write new mp4s into {DOWNLOADED_FILENAME}...', 'mp4s writing...')
-            myUtils.write(DOWNLOADED_FILENAME, mp4s)
-            self.SendMsg(f'write new mp4s into {DOWNLOADED_FILENAME} successfully!', 'mp4s wrote')
-            self.SendMsg(f'now mp4s.length={len(mp4s)}\n')
-
-            self.SendMsg(f'{mp4s_new} to be downloaded')
-            self.SendMsg(f'got {counter_new} srcs(total {counter_get}, repeated {counter_repeat}) from table[{table}]',
-                'src got')
-            box_msg = f'Enjoy! Got {counter_new} srcs(total {counter_get}, repeated {counter_repeat}) from table[{table}]'
-
-            srcTxt = '\n'.join(srcs_filtered)
-            myUtils.write(SRC_FILENAME_TEMPLATE % myUtils.getTimeStamp(), srcTxt, file_type='string')
-            self.srcTxt = srcTxt
-            self.SendMsg(f'{srcTxt}\n')
-
-            self.copyBtn.Enable()
-        else:
-            box_msg = 'Sorry! Got nothing!'
-            self.SendMsg('got no new mp4s\n')
-            self.SendMsg('nothing to be downloaded')
-
         
-
+        box_msg = 'Sorry! Got nothing!'
         if counter_get:
+            self.SendMsg(f'filter srcs from table[{table}] begins...', 'srcs filtering...')
+            mp4s = myUtils.read(DOWNLOADED_FILENAME)
+            self.SendMsg(f'mp4s has been loaded from {DOWNLOADED_FILENAME}, mp4s.length={len(mp4s)}')
+            srcs_filtered = []
+            mp4s_repeat = []
+            mp4s_new = []
+            for src in srcs:
+                mp4 = myUtils.matchMp4(src)
+                is_inserted = myUtils.insertIntoOrdered(mp4, mp4s)
+                if is_inserted:
+                    mp4s_new.append(mp4)
+                    srcs_filtered.append(src)
+                else:
+                    mp4s_repeat.append(mp4)
+                    self.SendMsg(f'{mp4}.mp4 has been downloaded before!')
+                    self.SendMsg(f'(src = {src})')
+            self.SendMsg(f'filtered srcs from table[{table}]\n', 'srcs filtered')
+
+            counter_new = len(mp4s_new)
+            counter_repeat = len(mp4s_repeat)
+
+            if counter_repeat:
+                self.SendMsg(f'{mp4s_repeat} repeated\n')
+            else:
+                self.SendMsg('none mp4 repeated\n')
+
+            if counter_new:
+                self.SendMsg(f'{mp4s_new} to be wrote into {DOWNLOADED_FILENAME}')
+                self.SendMsg(f'write new mp4s into {DOWNLOADED_FILENAME}...', 'mp4s writing...')
+                myUtils.write(DOWNLOADED_FILENAME, mp4s)
+                self.SendMsg(f'write new mp4s into {DOWNLOADED_FILENAME} successfully!', 'mp4s wrote')
+                self.SendMsg(f'now mp4s.length={len(mp4s)}\n')
+
+                self.SendMsg(f'{mp4s_new} to be downloaded')
+                self.SendMsg(f'got {counter_new} srcs(total {counter_get}, repeated {counter_repeat}) from table[{table}]',
+                    'src got')
+                box_msg = f'Enjoy! Got {counter_new} srcs(total {counter_get}, repeated {counter_repeat}) from table[{table}]'
+
+                srcTxt = '\n'.join(srcs_filtered)
+                myUtils.write(SRC_FILENAME_TEMPLATE % myUtils.getTimeStamp(), srcTxt, file_type='string')
+                self.srcTxt = srcTxt
+                self.SendMsg(f'{srcTxt}\n')
+
+                self.copyBtn.Enable()
+            else:
+                self.SendMsg('got no new mp4s\n')
+                self.SendMsg('nothing to be downloaded')
+
             ids = myUtils.filterIds(hrefs)
             self.SendMsg(f'{ids} prepared to delete in table[{table}]')
             self.SendMsg(f'delete hrefs from table[{table}] begins...', 'hrefs deleting...')
             pornDB.deleteHrefs(ids, table)
             self.SendMsg(f'deleted hrefs from table[{table}]\n', 'hrefs deleted')
+
+            self.SendMsg('All done! Enjoy!', 'done')
+        else:
+            self.SendMsg('So sad! None src got!\n', 'done')
         
-        self.SendMsg('All done! Enjoy!', 'done')
         self.SendMsg(f'Now time is {time.asctime()}')
         wx.MessageBox(box_msg, 'info', wx.OK | wx.ICON_INFORMATION)
 
@@ -262,7 +264,7 @@ class MyFrame(wx.Frame):
     def OnBackup(self, e):
         dial = wx.MessageDialog(None,
             f'Are you sure to backup {SETTING_FILENAME} and {DOWNLOADED_FILENAME}, this will cover old backup files',
-            'Warn', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+            'Warning', wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
         ret = dial.ShowModal()
         if ret == wx.ID_NO:
             return
@@ -425,7 +427,7 @@ class DatabaseDialog(wx.Dialog):
         table = self.table
         selected_serie = self.selected_serie
 
-        dial = wx.MessageDialog(None, f'Are you sure to reset table[{table}]', 'Warn',
+        dial = wx.MessageDialog(None, f'Are you sure to reset table[{table}]', 'Warning',
             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
         ret = dial.ShowModal()
         if ret == wx.ID_NO:

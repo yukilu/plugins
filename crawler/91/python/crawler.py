@@ -6,8 +6,16 @@ import myUtils
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36'
 
-cookie_json = myUtils.read('cookie.json')
 cookie = None
+cookie_json = None
+
+try:
+    cookie_json = myUtils.read('cookie.json')
+except FileNotFoundError as e:
+    print(e)
+except:
+    print('read cookie error')
+
 if cookie_json and 'cookie' in cookie_json:
     cookie = cookie_json['cookie']
 
