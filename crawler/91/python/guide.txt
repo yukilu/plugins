@@ -17,8 +17,8 @@
 二、设置
 
 1.cookie.json
-(不设置一天能爬11部，设置了大概50部)
-注册91账号(免费)，按F12，控制台输入document.cookie，复制 DUID=xx...xx 字段到cookie.json文件中
+(不设置一天能爬11部，设置cookie能大概多下个二三十部)
+注册91账号(免费)，按F12，控制台输入document.cookie，将其中的内容全部复制到cookie.json文件中里的cookie值后面
 
 2.setting.json
 ITEM_AMOUNT    一次爬取的链接数(未设置cookie时一般设为11)
@@ -35,23 +35,26 @@ series         序列参数数组
 lastModified   当前文件最后被修改的时间
 
 系列中的名字对应的91上的网页标签
-mostCollected           最多收藏
-hotCurrent              当前最热
-hotThisMonth            本月最热
-hotLastMonth            本月最热
+mostCollected           最多收藏(推荐，质量最高，链接最稳定，缺点是排名靠前的视频有点老)
+hotCurrent              当前最热(推荐，视频教新，但只有3页，可以每隔四五天全部爬完，再重置，重新爬)
+hotThisMonth            本月最热(推荐，视频教新，但只有5页，可以每隔十天半个月全部爬一边，再重置)
+hotLastMonth            上月最热(推荐，同上，但也只有5页，如果一直爬上个系列，这个可忽略)
 highlightedRecently     最近加精
 discussedThisMonth      本月讨论
 collectedThisMonth      本月收藏
-current                 视频标签默认主页
+current                 视频标签默认主页(不推荐，因为都是每天新视频，良莠不齐，浪费链接)
+custom                  自定义(可以自己在91搜索关键字，将路径写入到path里，并修改对应的lastPage,并保存)
 
 3.91downloaded.txt
     已经下载的视频的序号的有序数组，每次爬取链接后，会将新获取的视频与该数组中已下载的视频匹配，重复的会被过滤，新获取的会写入该数组
     初始情况下，没有数据时是空数组，不要把空数组删了，不然会报错
     如果程序出错，未正常写入时，可以手动写入，可以直接打开txt写入，但请保证有序，或者在py命令行或自己写脚本，使用myUtils模块中的insertIntoOrderedFile(targets, filemane)函数，只需要将需要新加入的mp4数组(数字非字符串)及当前文件名传入即可
 
+
 三、运行
 
-开始运行软件，命令行进入到爬虫所在文件夹，运行 py 91porn.py (linux下请使用python3命令运行)
+开始运行软件，命令行cd进入到爬虫所在文件夹，运行 py 91porn.py (linux下请使用python3命令运行)
+
 
 四、界面
 
@@ -64,7 +67,8 @@ current                 视频标签默认主页
 
 3.Setting
     查看并修改配置文件，具体参数在上面setting.json中已说明，域名只要不是错的太离谱，会自动修正
-    要使修改的配置生效，必须使用save保存
+    同时系列里的lastPage和path可以修改，除了下拉菜单最后一个custom(自定义)之外，其他的不要修改，custom下的可以结合91的搜索关键字，将链接粘贴进path(格式任意，程序会自动修正)，然后修改对应的lastPage
+    要使修改的配置生效，必须使用save保存，然后再爬取链接
 
 4.Database
     查看数据库中当前各个表中所存的链接，reset按钮是将对应的表清空，并将itemId重置为1，对于有些经常变动的系列可以爬完之后，过段时间清空再爬
@@ -72,6 +76,7 @@ current                 视频标签默认主页
 
 5.Backup
     因为未设置自动备份，所以放了个手动备份按钮，将setting.json和91downloaded.txt一起备份为setting_bak.json和91downloaded_bak.txt，同时在上面爬虫运行过程中，若当前setting.json和91downloaded.txt读取错误时，会自动去读取备份文件
+
 
 五、模块(只是使用，可略过)
 1. 91porn.py
