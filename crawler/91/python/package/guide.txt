@@ -1,0 +1,96 @@
+一、安装
+安装文件位于package文件夹内
+
+1.安装python3
+  (已安装可跳过，但请保证python版本为3.6+，由于使用了3.6的f字符串，低版本下会报错)
+  双击安装python-3.6.4.exe
+
+2.安装wxPython
+  (linux下自己去官网找对应下载包并使用pip3安装，下同)
+  pip install wxPython-4.0.0b2-cp36-cp36m-win_amd64.whl
+
+3.安装pyquery(依赖lxml)
+  pip install lxml-4.1.0-cp36-cp36m-win_amd64.whl
+  pip install pyquery
+
+
+二、设置
+
+1.cookie.json
+(不设置一天能爬11部，设置了大概50部)
+注册91账号(免费)，按F12，控制台输入document.cookie，复制 DUID=xx...xx 字段到cookie.json文件中
+
+2.setting.json
+ITEM_AMOUNT    一次爬取的链接数(未设置cookie时一般设为11)
+DURATION       每次爬取网页时的间隔
+domain         域名，原域名不可用时，可重新设置，可以直接在该配置文件中修改，或在界面中修改
+chosen         选择的系列的序数
+series         序列参数数组
+  index      当前系列序数
+  title      当前系列名字
+  itemId     下一次插入数据库的链接的初始id，为0时，表示当前系列对应的table还未初始化，reset时重置为1
+  pageIndex  下一次爬取hrefs时候的页数
+  lastPage   当前系列的最后一页
+  path       当前系列去掉域名及&page后的路径
+lastModified   当前文件最后被修改的时间
+
+系列中的名字对应的91上的网页标签
+mostCollected           最多收藏
+hotCurrent              当前最热
+hotThisMonth            本月最热
+hotLastMonth            本月最热
+highlightedRecently     最近加精
+discussedThisMonth      本月讨论
+collectedThisMonth      本月收藏
+current                 视频标签默认主页
+
+3.91downloaded.txt
+    已经下载的视频的序号的有序数组，每次爬取链接后，会将新获取的视频与该数组中已下载的视频匹配，重复的会被过滤，新获取的会写入该数组
+    初始情况下，没有数据时是空数组，不要把空数组删了，不然会报错
+    如果程序出错，未正常写入时，可以手动写入，可以直接打开txt写入，但请保证有序，或者在py命令行或自己写脚本，使用myUtils模块中的insertIntoOrderedFile(targets, filemane)函数，只需要将需要新加入的mp4数组(数字非字符串)及当前文件名传入即可
+
+三、运行
+
+开始运行软件，命令行进入到爬虫所在文件夹，运行 py 91porn.py (linux下请使用python3命令运行)
+
+四、界面
+
+1.Get
+    点击即开始爬取链接，爬完之后点击Copy按键，就将链接复制到了剪贴板，而且会在当前路径下生成一个包含了爬取链接的txt文件，这是为了防止出现关闭程序却发现没复制链接的情况，由于并未设置自动删除，请隔一段时间手动删除多余txt文件
+
+2.Copy
+    将爬取的视频链接拷贝到剪贴板，当迅雷开着并启用了监听剪贴板的时候，会直接触发迅雷
+    未爬到链接时，将不可用
+
+3.Setting
+    查看并修改配置文件，具体参数在上面setting.json中已说明，域名只要不是错的太离谱，会自动修正
+    要使修改的配置生效，必须使用save保存
+
+4.Database
+    查看数据库中当前各个表中所存的链接，reset按钮是将对应的表清空，并将itemId重置为1，对于有些经常变动的系列可以爬完之后，过段时间清空再爬
+    如果程序出错，需要手动删除数据库中的数据，可以使用pornDB模块中的deleteHrefs(ids,table)函数，传入要删除的id的数组和table名即可
+
+5.Backup
+    因为未设置自动备份，所以放了个手动备份按钮，将setting.json和91downloaded.txt一起备份为setting_bak.json和91downloaded_bak.txt，同时在上面爬虫运行过程中，若当前setting.json和91downloaded.txt读取错误时，会自动去读取备份文件
+
+五、模块(只是使用，可略过)
+1. 91porn.py
+    爬虫界面模块，将爬取逻辑一起写入了，爬取具体过程如下
+    1)判断当前系列itemId的值，若为0，则当前系列在数据库中的表未初始化，执行初始化，表名即为系列名，具体键值为id(int) itemIndex(int) pageIndex(int) href(char(150))，若大于0，则表示表已存在，跳过初始化
+    2)从数据库中读取当前表所存取的需要爬取网页的链接(href)，与ITEM_AMOUNT对比，若不够，则从当前系列的后面的网页中继续获取需要爬取的网页的链接，并存入数据库，若已足够，则跳过该步，这步并未对错误进行处理，是有意为之，若处理了，则会使后面的链接与id对不上，为了使其与网页一致，方便查看，获取href错误时，直接抛错，请关掉软件再重新运行
+    3)重新从数据库中读取网页链接，然后开始爬取视频链接，当获取错误时，不会抛错，该链接会被标记为获取失败
+    4)将上一步标记为获取成功的链接从数据库中删除，标记失败的继续保留，下次再获取
+    5)将爬取到的视频链接与91downloaded.txt中的有序数组作比对，已经存在就过滤掉，不存在就留下来，并将其插入该数组
+
+2. crawler.py
+    爬虫模块，包含以下两个函数
+    1) def getHref(base_url, domain, page_index, initial_id)
+    前三个参数组合出url，在请求该url，获取该网页上目标a链接的href，返回一个包含id,itemIndex, pageIndex, href的对象
+    2) getSrc(url, error_callback)
+    获取上面函数获取到的href页面，爬取'source'标签下的src属性，即为视频链接，可自定义error_callback回调，网络错误时传入e进行回调
+
+3. myUtils.py
+    工具函数模块，对其他模块需要用到的函数，进行了封装
+
+4. pornDB.py
+    处理数据库的函数
