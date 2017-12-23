@@ -49,21 +49,67 @@ def backup(filename, indent=0, file_type='json'):
 
 def handleDomain(domain):
     ''' handle wrong domain string
-    >>> handleDomain('htp:/91porn.com/v?a')
+    >>> handleDomain('/91porn.com/v?a')
     'http://www.91porn.com'
-    >>> handleDomain('91porn.com')
+    >>> handleDomain(':/www.91porn.com')
     'http://www.91porn.com'
-    >>> handleDomain('http://www.91porn.com')
+    >>> handleDomain('   tp://www.91porn.com')
     'http://www.91porn.com'
     '''
     domain = domain.strip()
-    p = re.compile('(?:[\w]*:?/{1,2})?([\w]+\.)?([\w]+\.[\w]+)(?:/[\w]*)?')
+
+    if not domain:
+        return
+
+    p = re.compile('h?t{0,2}p?s?:?/{0,2}([\w-]+\.)?(\w+\.\w+)/?')
     m = p.match(domain)
-    if m:
-        url = m.groups()
-        first = url[0] if url[0] else 'www.'
-        domain = 'http://' + first + url[1]
+    if not m:
+        return
+
+    url = m.groups()
+    first = url[0] if url[0] else 'www.'
+    domain = 'http://' + first + url[1]
     return domain
+
+def handleUrl(url):
+    '''handle wrong url
+    >>> handleUrl('http://www.91porn.com/v.php?ct=0&vw=nice')
+    '/v.php?ct=0&vw=nice'
+    >>> handleUrl('http://www.91porn.com/v.php?ct=0&vw=nice&page=2')
+    '/v.php?ct=0&vw=nice'
+    >>> handleUrl('www.91porn.com/v.php?ct=0&vw=nice')
+    '/v.php?ct=0&vw=nice'
+    >>> handleUrl('om/v.php?ct=0&vw=nice')
+    '/v.php?ct=0&vw=nice'
+    >>> handleUrl('/v.php?ct=0&vw=nice')
+    '/v.php?ct=0&vw=nice'
+    >>> handleUrl('v.php?ct=0&vw=nice')
+    '/v.php?ct=0&vw=nice'
+    '''
+    url = url.strip()
+
+    if not url:
+        return
+
+    page_patttern = re.compile('&page=\d+')
+    m = page_patttern.search(url)
+    if m:
+        url = url.replace(m.group(), '')
+
+    pattern1_str = '\.[a-z]+/' # complete domain eg. xx.com/v.php...
+    pattern2_str = '[a-z]*/' # incomplete domain eg. om/v.php...
+
+    pattern_strs = [pattern1_str, pattern2_str]
+
+    handled_url = f'/{url}'
+    for p_s in pattern_strs:
+        p = re.compile(p_s)
+        m = p.search(url)
+        if m:
+            handled_url = url[m.span()[1] - 1:]
+            break
+
+    return handled_url
 
 def filterIds(hrefs):
     filteredHrefs = filter(lambda href: href['done'], hrefs)

@@ -79,8 +79,8 @@ class MyFrame(wx.Frame):
         self.bakBtn.Disable()
 
         setting = myUtils.read(SETTING_FILENAME)
-        duration = setting['DURATION']
-        item_amount = setting['ITEM_AMOUNT']
+        duration = setting['duration']
+        item_amount = setting['itemAmount']
         domain = setting['domain']
         chosen = setting['chosen']
 
@@ -294,8 +294,9 @@ class MyDialog(wx.Dialog):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.setting = myUtils.read(SETTING_FILENAME)
-        self.serieLabels = [key for key in self.setting['series'][0]]
         self.setting_widgets = {}
+        self.serie_labels = [key for key in self.setting['series'][0]]
+        self.set_labels = ['itemAmount', 'duration', 'domain', 'lastPage', 'path']
         self.InitUI()
     
     def InitUI(self):
@@ -308,14 +309,14 @@ class MyDialog(wx.Dialog):
         panel = wx.Panel(self)
         grid = wx.GridBagSizer(10, 10)
 
-        st1 = wx.StaticText(panel, label='ITEM_AMOUNT')
+        st1 = wx.StaticText(panel, label='ItemAmount')
         grid.Add(st1, pos=(1, 0), flag=wx.LEFT | wx.TOP, border=5)
-        sc1 = wx.SpinCtrl(panel, value=str(setting['ITEM_AMOUNT']))
-        setting_widgets['item_amount'] = sc1
+        sc1 = wx.SpinCtrl(panel, value=str(setting['itemAmount']))
+        setting_widgets['itemAmount'] = sc1
         grid.Add(sc1, pos=(1, 1))
-        st2 = wx.StaticText(panel, label='DURATION')
+        st2 = wx.StaticText(panel, label='Duration')
         grid.Add(st2, pos=(1, 2), flag=wx.LEFT | wx.TOP, border=5)
-        sc2 = wx.SpinCtrl(panel, value=str(setting['DURATION']))
+        sc2 = wx.SpinCtrl(panel, value=str(setting['duration']))
         setting_widgets['duration'] = sc2
         grid.Add(sc2, pos=(1, 3))
 
@@ -334,30 +335,41 @@ class MyDialog(wx.Dialog):
         sbox = wx.StaticBox(panel, label='ChosenSeries')
         ssizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
 
-        serieLabels = self.serieLabels
-        serieLabels_length = len(serieLabels)
-        for serieLabel in serieLabels:
+        serie_labels = self.serie_labels
+        serie_labels_length = len(serie_labels)
+        for serie_label in serie_labels:
             hbox = wx.BoxSizer()
-            sst1 = wx.StaticText(panel, label=serieLabel + ':')
-            sst2 = wx.StaticText(panel, label=str(serie[serieLabel]))
-            setting_widgets[serieLabel] = sst2
-            hbox.Add(sst1, flag=wx.LEFT, border=15)
-            hbox.Add(sst2, flag=wx.LEFT, border=10)
-            ssizer.Add(hbox)
+            sst1 = wx.StaticText(panel, label=serie_label + ':')
+            border = 3
+            if serie_label == 'lastPage':
+                sst2 = wx.TextCtrl(panel, value=str(serie[serie_label]))
+            elif serie_label == 'path':
+                sst_empty = wx.StaticText(panel, size=(-1, 5))
+                ssizer.Add(sst_empty)
 
-        grid.Add(ssizer, pos=(5, 0), span=(serieLabels_length, 4), flag=wx.EXPAND | wx.LEFT, border=10)
+                sst2 = wx.TextCtrl(panel, value=serie[serie_label], size=(400, -1))
+            else:
+                border = 0
+                sst2 = wx.StaticText(panel, label=str(serie[serie_label]))
+                
+            setting_widgets[serie_label] = sst2
+            hbox.Add(sst1, flag=wx.TOP, border=border)
+            hbox.Add(sst2, flag=wx.LEFT, border=10)
+            ssizer.Add(hbox, flag=wx.LEFT, border=15)
+
+        grid.Add(ssizer, pos=(5, 0), span=(serie_labels_length, 4), flag=wx.EXPAND | wx.LEFT, border=10)
 
         sBtn = wx.Button(panel, label='Save', id=wx.ID_SAVE)
         sBtn.Bind(wx.EVT_BUTTON, self.OnSave)
         cBtn = wx.Button(panel, label='Close', id=wx.ID_CLOSE)
         cBtn.Bind(wx.EVT_BUTTON, self.OnClose)
-        btn_pos = serieLabels_length + 6
+        btn_pos = serie_labels_length + 6
         grid.Add(sBtn, pos=(btn_pos, 1), flag=wx.ALIGN_CENTER)
         grid.Add(cBtn, pos=(btn_pos, 2), flag=wx.ALIGN_CENTER)
 
         panel.SetSizer(grid)
 
-        self.SetSize(515, 480)
+        self.SetSize(520, 480)
         self.Center()
         self.Show(True)
     
@@ -366,21 +378,36 @@ class MyDialog(wx.Dialog):
         setting_widgets = self.setting_widgets
         serie = myUtils.find(e.GetString(), setting['series'], 'title')
         self.selected_serie_index = serie['index']
-        for p in self.serieLabels:
+        for p in self.serie_labels:
             setting_widgets[p].SetLabel(str(serie[p]))
     
     def OnSave(self, e):
         setting = self.setting
         setting_widgets = self.setting_widgets
-        setting['chosen'] = self.selected_serie_index
+        selected_serie_index = self.selected_serie_index
+        setting['chosen'] = selected_serie_index
+        serie = setting['series'][selected_serie_index]
 
-        for w in ['item_amount', 'duration', 'domain']:
+        for w in self.set_labels:
+            v = setting_widgets[w].GetValue()
             if w == 'domain':
-                domain = myUtils.handleDomain(setting_widgets[w].GetValue())
-                setting[w] = domain
-                setting_widgets[w].SetValue(domain)
+                new_v = myUtils.handleDomain(v)
+                setting_widgets[w].SetValue(new_v)
+            elif w == 'path':
+                new_v = myUtils.handleUrl(v)
+                setting_widgets[w].SetValue(new_v)
             else:
-                setting[w.upper()] = int(setting_widgets[w].GetValue())
+                new_v = int(v)
+            
+            if new_v == None:
+                wx.MessageBox(f'{w} is wrong, please write again', 'error', style=wx.OK | wx.ICON_ERROR)
+                return
+
+            if w in self.serie_labels:
+                serie[w] = new_v
+            else:
+                setting[w] = new_v
+        
         setting['lastModified'] = time.asctime()
         myUtils.write(SETTING_FILENAME, setting, indent=2)
         wx.MessageBox('setting.json saved successfully', 'info', wx.OK | wx.ICON_INFORMATION)
