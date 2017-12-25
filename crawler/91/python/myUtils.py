@@ -5,8 +5,8 @@ import math
 import time
 import doctest
 
-def find(target, array, property):
-    for o in array:
+def find(target, lst, property):
+    for o in lst:
         if target == o[property]:
             return o
 
@@ -115,13 +115,13 @@ def filterIds(hrefs):
     filteredHrefs = filter(lambda href: href['done'], hrefs)
     return [href['id'] for href in filteredHrefs]
 
-def dictArray2str(array, seperator='\n'):
-    '''converse dict array to string array
+def dictArray2str(dict_list, seperator='\n'):
+    '''converse dict list to string list
     >>> dictArray2str([{'a':0}, {'a':1}, {'a':2}])
     '{"a": 0}\\n{"a": 1}\\n{"a": 2}'
     '''
-    strArray = list(map(lambda o: json.dumps(o), array))
-    return seperator.join(strArray)
+    str_list = [json.dumps(o) for o in dict_list]
+    return seperator.join(str_list)
 
 def matchMp4(src):
     '''matchMp4
@@ -138,8 +138,8 @@ def getFilenamesIntoInt(path=None):
     filenames.sort()
     return filenames
 
-def binarySearch(target, array):
-    '''find target index in array
+def binarySearch(target, lst):
+    '''find target index in list
     >>> binarySearch(4, [0,1,2,3,4,5])
     (True, 4)
     >>> binarySearch(1.5, [0,1,2,3,4,5])
@@ -157,15 +157,15 @@ def binarySearch(target, array):
     '''
     is_found = False
     i = 0
-    j = len(array) - 1
+    j = len(lst) - 1
     if j == -1:
-        raise ValueError('array can not be empty')
+        raise ValueError('list can not be empty')
 
     while i <= j:
         m = i + (j - i) // 2
-        if (target < array[m]):
+        if (target < lst[m]):
             j = m - 1
-        elif (target > array[m]):
+        elif (target > lst[m]):
             i = m + 1
         else:
             is_found = True
@@ -174,30 +174,30 @@ def binarySearch(target, array):
     
     return (is_found, i)
 
-def insertIntoOrdered(target, ordered_array):
-    '''insert target into ordered array'''
-    if not ordered_array:
+def insertIntoOrdered(target, ordered_list):
+    '''insert target into ordered list'''
+    if not ordered_list:
         is_found, index = False, 0
     else:
-        is_found, index = binarySearch(target, ordered_array)
+        is_found, index = binarySearch(target, ordered_list)
     
     can_insert = not is_found
     if can_insert:
-        ordered_array.insert(index, target)
+        ordered_list.insert(index, target)
     return can_insert
 
 def insertIntoOrderedFile(targets, filename):
-    '''insert targets array into ordered array from file and write back to file to cover it'''
-    ordered_array = read(filename)
+    '''insert targets list into ordered list from file and write back to file to cover it'''
+    ordered_list = read(filename)
     insert_fail = []
     insert_success = []
     for t in targets:
-        can_insert = insertIntoOrdered(t, ordered_array)
+        can_insert = insertIntoOrdered(t, ordered_list)
         if can_insert:
             insert_success.append(t)
         else:
             insert_fail.append(t)
-    write(filename, ordered_array)
+    write(filename, ordered_list)
 
     return insert_success, insert_fail
 
@@ -219,14 +219,14 @@ def removeInFile(targets, filename):
     return remove_success, remove_fail
 
 def findInFile(targets, filename):
-    lst = read(filename)
-    if not lst:
+    ordered_list = read(filename)
+    if not ordered_list:
         return
     
     found = []
     not_found = []
     for target in targets:
-        is_found, _ = binarySearch(target, lst)
+        is_found, _ = binarySearch(target, ordered_list)
         if is_found:
             found.append(target)
         else:
