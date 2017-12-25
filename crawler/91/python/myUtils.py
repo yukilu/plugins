@@ -174,27 +174,79 @@ def binarySearch(target, array):
     
     return (is_found, i)
 
-def insertIntoOrdered(target, array):
+def insertIntoOrdered(target, ordered_array):
     '''insert target into ordered array'''
-    if not array:
+    if not ordered_array:
         is_found, index = False, 0
     else:
-        is_found, index = binarySearch(target, array)
+        is_found, index = binarySearch(target, ordered_array)
     
-    is_inserted = False
-    if not is_found:
-        array.insert(index, target)
-        is_inserted = True
-    return is_inserted
+    can_insert = not is_found
+    if can_insert:
+        ordered_array.insert(index, target)
+    return can_insert
 
 def insertIntoOrderedFile(targets, filename):
     '''insert targets array into ordered array from file and write back to file to cover it'''
-    array = read(filename)
+    ordered_array = read(filename)
+    insert_fail = []
+    insert_success = []
     for t in targets:
-        insertIntoOrdered(t, array)
-    write(filename, array)
+        can_insert = insertIntoOrdered(t, ordered_array)
+        if can_insert:
+            insert_success.append(t)
+        else:
+            insert_fail.append(t)
+    write(filename, ordered_array)
 
-    return True
+    return insert_success, insert_fail
+
+def removeInFile(targets, filename):
+    lst = read(filename)
+    if not lst:
+        return
+
+    remove_fail = []
+    remove_success = []
+    for t in targets:
+        try:
+            lst.remove(t)
+            remove_success.append(t)
+        except ValueError as e:
+            print(e)
+            remove_fail.append(t)
+    write(filename, lst)
+    return remove_success, remove_fail
+
+def findInFile(targets, filename):
+    lst = read(filename)
+    if not lst:
+        return
+    
+    found = []
+    not_found = []
+    for target in targets:
+        is_found, _ = binarySearch(target, lst)
+        if is_found:
+            found.append(target)
+        else:
+            not_found.append(target)
+    return found, not_found
+
+def str2ints(target_str, seperator = ' '):
+    target_str = target_str.strip()
+    if not target_str:
+        return
+
+    try:
+        target_strs = target_str.split(seperator)
+        targets = [int(target_str) for target_str in target_strs]
+        targets.sort()
+    except:
+        print('handle target_str error in function str2ints in myUtils.py')
+        return
+    
+    return targets
 
 def getTimeStamp():
     return math.floor(time.time())

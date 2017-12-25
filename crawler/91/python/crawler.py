@@ -1,6 +1,8 @@
 from urllib.request import Request, urlopen
+from urllib.parse import quote
 from urllib.error import URLError, HTTPError
 from pyquery import PyQuery as pq
+import string
 
 import myUtils
 
@@ -27,22 +29,27 @@ else:
     print('no cookie')
 
 def getHref(base_url, domain, page_index, initial_id):
-    selector_a = '.listchannel > a[target=blank]'
+    #selector_a = '.listchannel > a[target=blank]'
+    selector_a = 'div[class*=imagechannel] > a'
     node_attr = 'href'
-    url_template = '%s%s&%s'
 
     domain_length = len(domain)
+    base_url = quote(base_url, safe=string.printable)
 
     if page_index > 1:
-        page_path = 'page=' + str(page_index)
+        page_path = '&page=' + str(page_index)
     else:
         page_path = ''
     
-    url = url_template % (domain, base_url, page_path)
+    url = f'{domain}{base_url}{page_path}'
+    #print(url)
 
     hrefs = []
     req = Request(url=url, headers=headers)
     html = urlopen(req).read()
+
+    #with open('f.txt', 'w') as f:
+        #f.write(html.decode('utf-8'))
 
     doc = pq(html)
     alist = doc(selector_a)
@@ -52,11 +59,16 @@ def getHref(base_url, domain, page_index, initial_id):
         href = { 'id': initial_id + i, 'itemIndex': i, 'pageIndex': page_index, 'href': h[domain_length:] }
         hrefs.append(href)
     
+    if not hrefs:
+        raise ValueError('hrefs is empty [f=getHref, module=crawler.py]')
+
     return hrefs
 
 def getSrc(url, error_callback):
     selector = 'source'
     node_attr = 'src'
+
+    url = quote(url, safe=string.printable)
 
     value = None
     try:

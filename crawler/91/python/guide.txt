@@ -20,7 +20,7 @@
 ¶þ¡¢ÉèÖÃ
 
 1.cookie.json
-(²»ÉèÖÃÒ»ÌìÄÜÅÀ11²¿£¬ÉèÖÃcookieÄÜ´ó¸ÅÄÜÅÀÎåÁùÊ®²¿)
+(²»ÉèÖÃÒ»ÌìÄÜÅÀ11²¿£¬ÉèÖÃcookie´ó¸ÅÒ»ÌìÄÜÅÀÎåÁùÊ®²¿)
 ×¢²á91ÕËºÅ(Ãâ·Ñ)£¬°´F12£¬¿ØÖÆÌ¨ÊäÈëdocument.cookie£¬½«ÆäÖÐµÄÄÚÈÝÈ«²¿¸´ÖÆµ½cookie.jsonÎÄ¼þÖÐÀïµÄcookieÖµºóÃæ
 
 2.setting.json
@@ -46,12 +46,11 @@ highlightedRecently     ×î½ü¼Ó¾«
 discussedThisMonth      ±¾ÔÂÌÖÂÛ
 collectedThisMonth      ±¾ÔÂÊÕ²Ø
 current                 ÊÓÆµ±êÇ©Ä¬ÈÏÖ÷Ò³(²»ÍÆ¼ö£¬ÒòÎª¶¼ÊÇÃ¿ÌìÐÂÊÓÆµ£¬Á¼Ý¬²»Æë£¬ÀË·ÑÁ´½Ó)
-custom                  ×Ô¶¨Òå(¿ÉÒÔ×Ô¼ºÔÚ91ËÑË÷¹Ø¼ü×Ö£¬½«Â·¾¶Ð´Èëµ½pathÀï£¬²¢ÐÞ¸Ä¶ÔÓ¦µÄlastPage,²¢±£´æ)
+custom                  ×Ô¶¨Òå(¿ÉÒÔ×Ô¼º½«Â·¾¶Ð´Èëµ½pathÀï£¬²¢ÐÞ¸Ä¶ÔÓ¦µÄlastPage,²¢±£´æ)
 
 3.91downloaded.txt
     ÒÑ¾­ÏÂÔØµÄÊÓÆµµÄÐòºÅµÄÓÐÐòÊý×é£¬Ã¿´ÎÅÀÈ¡Á´½Óºó£¬»á½«ÐÂ»ñÈ¡µÄÊÓÆµÓë¸ÃÊý×éÖÐÒÑÏÂÔØµÄÊÓÆµÆ¥Åä£¬ÖØ¸´µÄ»á±»¹ýÂË£¬ÐÂ»ñÈ¡µÄ»áÐ´Èë¸ÃÊý×é
     ³õÊ¼Çé¿öÏÂ£¬Ã»ÓÐÊý¾ÝÊ±ÊÇ¿ÕÊý×é£¬²»Òª°Ñ¿ÕÊý×éÉ¾ÁË£¬²»È»»á±¨´í
-    Èç¹û³ÌÐò³ö´í£¬Î´Õý³£Ð´ÈëÊ±£¬¿ÉÒÔÊÖ¶¯Ð´Èë£¬¿ÉÒÔÖ±½Ó´ò¿ªtxtÐ´Èë£¬µ«Çë±£Ö¤ÓÐÐò£¬»òÕßÔÚpyÃüÁîÐÐ»ò×Ô¼ºÐ´½Å±¾£¬Ê¹ÓÃmyUtilsÄ£¿éÖÐµÄinsertIntoOrderedFile(targets, filemane)º¯Êý£¬Ö»ÐèÒª½«ÐèÒªÐÂ¼ÓÈëµÄmp4Êý×é(Êý×Ö·Ç×Ö·û´®)¼°µ±Ç°ÎÄ¼þÃû´«Èë¼´¿É
 
 
 Èý¡¢ÔËÐÐ
@@ -70,12 +69,14 @@ custom                  ×Ô¶¨Òå(¿ÉÒÔ×Ô¼ºÔÚ91ËÑË÷¹Ø¼ü×Ö£¬½«Â·¾¶Ð´Èëµ½pathÀï£¬²¢ÐÞ¸
 
 3.Setting
     ²é¿´²¢ÐÞ¸ÄÅäÖÃÎÄ¼þ£¬¾ßÌå²ÎÊýÔÚÉÏÃæsetting.jsonÖÐÒÑËµÃ÷£¬ÓòÃûÖ»Òª²»ÊÇ´íµÄÌ«ÀëÆ×£¬»á×Ô¶¯ÐÞÕý
-    Í¬Ê±ÏµÁÐÀïµÄlastPageºÍpath¿ÉÒÔÐÞ¸Ä£¬³ýÁËÏÂÀ­²Ëµ¥×îºóÒ»¸öcustom(×Ô¶¨Òå)Ö®Íâ£¬ÆäËûµÄ²»ÒªÐÞ¸Ä£¬customÏÂµÄ¿ÉÒÔ½áºÏ91µÄËÑË÷¹Ø¼ü×Ö£¬½«Á´½ÓÕ³Ìù½øpath(¸ñÊ½ÈÎÒâ£¬³ÌÐò»á×Ô¶¯ÐÞÕý)£¬È»ºóÐÞ¸Ä¶ÔÓ¦µÄlastPage
+    Í¬Ê±ÏµÁÐÀïµÄlastPageºÍpath¿ÉÒÔÐÞ¸Ä£¬³ýÁËÏÂÀ­²Ëµ¥×îºóÒ»¸öcustom(×Ô¶¨Òå)Ö®Íâ£¬ÆäËûµÄ²»ÒªÐÞ¸Ä£¬customÏÂµÄ¿ÉÒÔ×Ô¼ºÐÞ¸Äpath(¸ñÊ½ÈÎÒâ£¬µ«ÊÇÒª±£Ö¤ÓòÃûºóµÄÂ·¾¶ÍêÕû£¬³ÌÐò»á×Ô¶¯ÐÞÕý)£¬È»ºóÐÞ¸Ä¶ÔÓ¦µÄlastPage
     ÒªÊ¹ÐÞ¸ÄµÄÅäÖÃÉúÐ§£¬±ØÐëÊ¹ÓÃsave±£´æ£¬È»ºóÔÙÅÀÈ¡Á´½Ó
 
 4.Database
-    ²é¿´Êý¾Ý¿âÖÐµ±Ç°¸÷¸ö±íÖÐËù´æµÄÁ´½Ó£¬reset°´Å¥ÊÇ½«¶ÔÓ¦µÄ±íÇå¿Õ£¬²¢½«itemIdÖØÖÃÎª1£¬¶ÔÓÚÓÐÐ©¾­³£±ä¶¯µÄÏµÁÐ¿ÉÒÔÅÀÍêÖ®ºó£¬¹ý¶ÎÊ±¼äÇå¿ÕÔÙÅÀ
-    Èç¹û³ÌÐò³ö´í£¬ÐèÒªÊÖ¶¯É¾³ýÊý¾Ý¿âÖÐµÄÊý¾Ý£¬¿ÉÒÔÊ¹ÓÃpornDBÄ£¿éÖÐµÄdeleteHrefs(ids,table)º¯Êý£¬´«ÈëÒªÉ¾³ýµÄidµÄÊý×éºÍtableÃû¼´¿É
+    Ñ¡Ôñ¶ÔÓ¦µÄ±íÊ±£¬¿ÉÒÔ²é¿´Êý¾Ý¿âÖÐµ±Ç°¸÷¸ö±íÖÐËù´æµÄÁ´½Ó
+    remove      ÊäÈëÆðÊ¼µ½½áÊø(°üÀ¨½áÊøÏî)µÄid£¬½«É¾³ýÊý¾Ý¿âÖÐid¶ÔÓ¦µÄÏîÄ¿
+    reset       ÊÇ½«¶ÔÓ¦µÄ±íÇå¿Õ£¬²¢½«itemIdÖØÖÃÎª1£¬¶ÔÓÚÓÐÐ©¾­³£±ä¶¯µÄÏµÁÐ¿ÉÒÔÅÀÍêÖ®ºó£¬¹ý¶ÎÊ±¼äÇå¿ÕÔÙÅÀ
+    handleMp4   ¶Ô91downloaded.txt½øÐÐ´¦Àí£¬¿ÉÒÔÊÖ¶¯É¾³ý¼°²åÈëÊÓÆµµÄÃû×Ö(¿ÉÒÔÐ´ÈëtxtÎÄ¼þÃû½øÐÐ´óÅúÁ¿ÐÞ¸Ä,¸Ãtxt¸ñÊ½Óë91downloaded.txtÍ¬£¬ÎªÒ»¸öÊý×ÖµÄÁÐ±í)£¬»òÕß²éÑ¯¶ÔÓ¦ÊÓÆµÊÇ·ñ´æÔÚ
 
 5.Backup
     ÒòÎªÎ´ÉèÖÃ×Ô¶¯±¸·Ý£¬ËùÒÔ·ÅÁË¸öÊÖ¶¯±¸·Ý°´Å¥£¬½«setting.jsonºÍ91downloaded.txtÒ»Æð±¸·ÝÎªsetting_bak.jsonºÍ91downloaded_bak.txt£¬Í¬Ê±ÔÚÉÏÃæÅÀ³æÔËÐÐ¹ý³ÌÖÐ£¬Èôµ±Ç°setting.jsonºÍ91downloaded.txt¶ÁÈ¡´íÎóÊ±£¬»á×Ô¶¯È¥¶ÁÈ¡±¸·ÝÎÄ¼þ

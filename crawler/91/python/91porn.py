@@ -100,7 +100,11 @@ class MyFrame(wx.Frame):
             self.SendMsg(f'initializing table[{table}...]', f'table[{table}] initializing')
             pornDB.initialDB(table)
             initial_id += 1
-            self.SendMsg(f'initialized table[{table}]\n', f'table[{table}] initialized\n')
+            self.SendMsg(f'initialized table[{table}]', f'table[{table}] initialized')
+            serie['itemId'] = initial_id
+            myUtils.write(SETTING_FILENAME, setting, indent=2)
+            self.SendMsg(f'{table}.itemId has been updated to 1\n')
+
         
         self.SendMsg(f'reading hrefs from table[{table}]...', 'hrefs reading...')
         hrefs = pornDB.readAllHrefs(table)
@@ -111,7 +115,7 @@ class MyFrame(wx.Frame):
         if hrefs_firstread_length == 0 and all_finished:
             self.SendMsg(f'table[{table}] all finished! You can reset it and get srcs a few days later')
             wx.MessageBox(f'table[{table}] all finished! You can reset it and get srcs a few days later',
-                'info', wx.OK | wx.ICON_INFORMATION)
+                'Info', wx.OK | wx.ICON_INFORMATION)
             
             self.getBtn.Enable()
             self.setBtn.Enable()
@@ -237,15 +241,15 @@ class MyFrame(wx.Frame):
         else:
             self.SendMsg('So sad! None src got!\n', 'done')
         
-        self.SendMsg(f'Now time is {time.asctime()}')
-        wx.MessageBox(box_msg, 'info', wx.OK | wx.ICON_INFORMATION)
+        self.SendMsg(f'Now time is {time.asctime()}\n')
+        wx.MessageBox(box_msg, 'Info', wx.OK | wx.ICON_INFORMATION)
 
         self.getBtn.Enable()
         self.setBtn.Enable()
         self.bakBtn.Enable()
     
-    def error_callback(self, e):
-        self.StatusDisplay(f'%s{e}')
+    def error_callback(self, error):
+        self.StatusDisplay(f'{error}')
     
     def OnCopy(self, e):
         data = wx.TextDataObject()
@@ -279,7 +283,7 @@ class MyFrame(wx.Frame):
         myUtils.backup(SETTING_FILENAME, indent=2)
         myUtils.backup(DOWNLOADED_FILENAME)
         self.StatusDisplay(f'back up {SETTING_FILENAME} and {DOWNLOADED_FILENAME} successfully!', 'backup successfully')
-        wx.MessageBox(f'back up {SETTING_FILENAME} and {DOWNLOADED_FILENAME} successfully!', 'info',
+        wx.MessageBox(f'back up {SETTING_FILENAME} and {DOWNLOADED_FILENAME} successfully!', 'Info',
             wx.OK | wx.ICON_INFORMATION)
     
     def updateDisplay(self, msg):
@@ -400,7 +404,7 @@ class MyDialog(wx.Dialog):
                 new_v = int(v)
             
             if new_v == None:
-                wx.MessageBox(f'{w} is wrong, please write again', 'error', style=wx.OK | wx.ICON_ERROR)
+                wx.MessageBox(f'{w} is wrong, please write again', 'Error', style=wx.OK | wx.ICON_ERROR)
                 return
 
             if w in self.serie_labels:
@@ -410,7 +414,7 @@ class MyDialog(wx.Dialog):
         
         setting['lastModified'] = time.asctime()
         myUtils.write(SETTING_FILENAME, setting, indent=2)
-        wx.MessageBox('setting.json saved successfully', 'info', wx.OK | wx.ICON_INFORMATION)
+        wx.MessageBox('setting.json saved successfully', 'Info', wx.OK | wx.ICON_INFORMATION)
 
     def OnClose(self, e):
         self.Close()
@@ -433,11 +437,18 @@ class DatabaseDialog(wx.Dialog):
         st = wx.StaticText(panel, label='table:')
         cb = wx.ComboBox(panel, value=self.table, choices=self.tables, style=wx.CB_READONLY)
         cb.Bind(wx.EVT_COMBOBOX, self.OnSelect)
-        btn = wx.Button(panel, label='Reset')
-        btn.Bind(wx.EVT_BUTTON, self.OnReset)
+
+        removeBtn = wx.Button(panel, label='Remove')
+        removeBtn.Bind(wx.EVT_BUTTON, self.OnRemove)
+        resetBtn = wx.Button(panel, label='Reset')
+        resetBtn.Bind(wx.EVT_BUTTON, self.OnReset)
+        insertMp4Btn = wx.Button(panel, label='HanldeMp4')
+        insertMp4Btn.Bind(wx.EVT_BUTTON, self.OnHandleMp4)
         hbox.Add(st, flag=wx.TOP | wx.RIGHT, border=5)
         hbox.Add(cb, flag=wx.TOP | wx.RIGHT, border=3)
-        hbox.Add(btn, flag=wx.LEFT, border=20)
+        hbox.Add(removeBtn, flag=wx.LEFT, border=40)
+        hbox.Add(resetBtn, flag=wx.LEFT, border=10)
+        hbox.Add(insertMp4Btn, flag=wx.LEFT, border=10)
         vbox.Add(hbox, flag=wx.ALL, border=10)
 
         txt = self.GetTxt()
@@ -467,17 +478,29 @@ class DatabaseDialog(wx.Dialog):
             return
 
         if not selected_serie['itemId']:
-            wx.MessageBox(f'table[{table}] has not been initialized', 'info', wx.OK | wx.ICON_INFORMATION)
+            wx.MessageBox(f'table[{table}] has not been initialized', 'Info', wx.OK | wx.ICON_INFORMATION)
             return
         
-        self.tc.SetValue(f'table={table}, length=0')
+        self.tc.SetValue(f'table={table}, length=0\n')
         pornDB.clearHrefs(table)
 
         selected_serie['itemId'] = 1
         selected_serie['pageIndex'] = 1
         setting['lastModified'] = time.asctime()
         myUtils.write(SETTING_FILENAME, setting, indent=2)
-        wx.MessageBox(f'table[{table}] has been reset!', 'info', wx.OK | wx.ICON_INFORMATION)
+        wx.MessageBox(f'table[{table}] has been reset!', 'Info', wx.OK | wx.ICON_INFORMATION)
+    
+    def OnRemove(self, e):
+        dial = DatabaseRemoveDialog(self.table, None, title=f'Remove items in table[{self.table}]')
+        dial.ShowModal()
+        dial.Destroy()
+
+        self.tc.SetValue(self.GetTxt())
+    
+    def OnHandleMp4(self, e):
+        dial = HandleMp4Dialog(None)
+        dial.ShowModal()
+        dial.Destroy()
 
     def GetTxt(self):
         table = self.table
@@ -490,7 +513,189 @@ class DatabaseDialog(wx.Dialog):
         for href in hrefs:
             del href['done']
         txt = myUtils.dictArray2str(hrefs)
-        return f'table={table}, length={hrefs_length}\n\n{txt}'
+        return f'table={table}, length={hrefs_length}\n\n{txt}\n'
+
+class DatabaseRemoveDialog(wx.Dialog):
+    def __init__(self, table, *args, **kw):
+        super().__init__(*args, **kw)
+        self.table = table
+        self.InitUI()
+    
+    def InitUI(self):
+        panel = wx.Panel(self)
+
+        st1 = wx.StaticText(panel, label='ids:', pos=(50, 33))
+        tc1 = wx.TextCtrl(panel, pos=(100, 30))
+        self.startTc = tc1
+        st2 = wx.StaticText(panel, label='~', pos=(230, 33))
+        tc2 = wx.TextCtrl(panel, pos=(260, 30))
+        self.endTc = tc2
+        removeBtn = wx.Button(panel, label='Remove', pos=(110, 90))
+        removeBtn.Bind(wx.EVT_BUTTON, self.OnRemove)
+        closeBtn = wx.Button(panel, label='Close', pos=(230, 90))
+        closeBtn.Bind(wx.EVT_BUTTON, self.OnClose)
+
+        self.SetSize(450, 180)
+        self.Center()
+        self.Show(True)
+    
+    def OnRemove(self, e):
+        try:
+            start = int(self.startTc.GetValue())
+            end = int(self.endTc.GetValue())
+        except:
+            wx.MessageBox('Please enter number!', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+        
+        if start > end:
+            wx.MessageBox('Please ensure start is less than end', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+
+        table = self.table
+        dial = wx.MessageDialog(None, f'Are you sure to delete hrefs[ids={start}->{end}] in table[{table}]', 'Warning',
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+        ret = dial.ShowModal()
+        if ret == wx.ID_NO:
+            return
+        
+        ids = range(start, end + 1)
+        pornDB.deleteHrefs(ids, table)
+        wx.MessageBox(f'hrefs[id={start}->{end}] in table[{table}] have been deleted successfully!', 'Info',
+            wx.OK | wx.ICON_INFORMATION)
+    
+    def OnClose(self, e):
+        self.Close()
+
+class HandleMp4Dialog(wx.Dialog):
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.InitUI()
+    
+    def InitUI(self):
+        panel = wx.Panel(self)
+
+        st1 = wx.StaticText(panel,
+            label='Please type mp4 names(seperate by ",", eg: 3575, 5698, 93456) or txt file name(eg: d.txt)',
+            pos=(10, 20))
+        tc1 = wx.TextCtrl(panel, pos=(10, 45), size=(560, -1))
+        self.inputTc = tc1
+        st2 = wx.StaticText(panel, pos=(10, 90))
+        self.st = st2
+        tc2 = wx.TextCtrl(panel, pos=(10, 115), size=(560, 270), style=wx.TE_READONLY | wx.TE_MULTILINE)
+        self.showTc = tc2
+        insertBtn = wx.Button(panel, label='Insert', pos=(140, 410))
+        insertBtn.Bind(wx.EVT_BUTTON, self.OnInsert)
+        removeBtn = wx.Button(panel, label='Remove', pos=(250, 410))
+        removeBtn.Bind(wx.EVT_BUTTON, self.OnRemove)
+        findBtn = wx.Button(panel, label='find', pos=(360, 410))
+        findBtn.Bind(wx.EVT_BUTTON, self.OnFind)
+
+        self.ShowMp4()
+
+        self.SetTitle(f'Handle mp4s in {DOWNLOADED_FILENAME}')
+        self.SetSize(600, 500)
+        self.Center()
+        self.Show(True)
+    
+    def OnInsert(self, e):
+        targets = self.handleMp4str()
+        if not targets:
+            return
+        
+        dial = wx.MessageDialog(None, f'Are you sure to insert mp4s{targets} into {DOWNLOADED_FILENAME}', 'Warning',
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING)
+        ret = dial.ShowModal()
+        if ret == wx.ID_NO:
+            return
+        
+        insert_success, insert_fail = myUtils.insertIntoOrderedFile(targets, DOWNLOADED_FILENAME)
+
+        if insert_success and insert_fail:
+            msg1 = f'{insert_success} inserted successfully, '
+            msg2 = f'{insert_fail} alreday exist'
+        elif insert_fail:  # insert_success is empty
+            msg1 = 'nothing inserted, '
+            msg2 = f'{insert_fail} all already exist'
+        elif insert_success:  # insert_fail is empty
+            msg1 = f'{insert_success} all inserted successfully'
+            msg2 = ''
+        msg = f'In {DOWNLOADED_FILENAME} mp4s, {msg1}{msg2}!'
+        self.inputTc.Clear()
+        wx.MessageBox(msg, 'Info', wx.OK | wx.ICON_INFORMATION)
+        self.ShowMp4(msg)
+
+    def OnRemove(self, e):
+        targets = self.handleMp4str()
+        if not targets:
+            return
+
+        dial = wx.MessageDialog(None, f'Are you sure to remove mp4s{targets} in {DOWNLOADED_FILENAME}', 'Warning',
+            wx.OK | wx.ICON_WARNING)
+        ret = dial.ShowModal()
+        if ret == wx.ID_NO:
+            return
+        
+        r = myUtils.removeInFile(targets, DOWNLOADED_FILENAME)
+        if not r:
+            wx.MessageBox(f'mp4s read from {DOWNLOADED_FILENAME} is empty. So you can\'t remove anything in it!', 'Warning',
+                wx.OK | wx.ICON_WARNING)
+            return
+
+        remove_success, remove_fail = r
+        if remove_success and remove_fail:
+            msg1 = f'{remove_success} removed successfully, '
+            msg2 = f'{remove_fail} don\'t exist'
+        elif remove_fail:  # remove_success is empty
+            msg1 = f'nothing removed, '
+            msg2 = f'{remove_fail} all don\'t exist'
+        elif remove_success:
+            msg1 = f'{remove_success} all removed successfully'
+            msg2 = ''
+        
+        msg = f'In {DOWNLOADED_FILENAME} mp4s, {msg1}{msg2}!'
+        self.inputTc.Clear()
+        wx.MessageBox(msg, 'Info', wx.OK | wx.ICON_INFORMATION)
+        self.ShowMp4(msg)
+
+    def OnFind(self, e):
+        targets = self.handleMp4str()
+        if not targets:
+            return
+
+        r = myUtils.findInFile(targets, DOWNLOADED_FILENAME)
+        if not r:
+            wx.MessageBox(f'mp4s read from {DOWNLOADED_FILENAME} is empty. So you can\'t find anything in it!', 'Warning',
+                wx.OK | wx.ICON_WARNING)
+            return
+
+        found, not_found = r
+        msg = f'{found} in {DOWNLOADED_FILENAME}\n{not_found} not in {DOWNLOADED_FILENAME}'
+        if not found:
+            msg = f'{targets} are all not in {DOWNLOADED_FILENAME}'
+        if not not_found:
+            msg = f'{targets} all have been in {DOWNLOADED_FILENAME}'
+
+        wx.MessageBox(msg, 'Info', wx.OK | wx.ICON_INFORMATION)
+
+    def ShowMp4(self, msg=''):
+        mp4s = myUtils.read(DOWNLOADED_FILENAME)
+        length = len(mp4s)
+        if msg:
+            msg += '\n\n'
+        txt = f'{msg}{mp4s}'
+        self.showTc.SetValue(txt)
+        self.st.SetLabel(f'mp4s[length={length}] in {DOWNLOADED_FILENAME}')
+
+    def handleMp4str(self):
+        mp4s_str = self.inputTc.GetValue()
+        if '.txt' in mp4s_str:
+            targets = myUtils.read(mp4s_str)
+        else:
+            targets = myUtils.str2ints(mp4s_str, ',')
+        if not targets:
+            wx.MessageBox('Wrong format, please type mp4s again!(eg: 123, 223, 305)', 'Error', wx.OK | wx.ICON_ERROR)
+            return
+        return targets
 
 if __name__ == '__main__':
     app = wx.App()

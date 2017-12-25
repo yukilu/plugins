@@ -74,7 +74,7 @@
       "itemId": 0,
       "pageIndex": 1,
       "lastPage": 20,
-      "path": "/search_result.php?search_id=\u767d\u5ae9&search_type=search_videos&x=0&y=0"
+      "path": "/custom_path"
     }
   ],
   "lastModified": "Sat Dec 23 18:10:46 2017"
