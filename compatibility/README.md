@@ -1,5 +1,6 @@
 # compatibility
-conclude some js compatibilities<br/>
+
+conclude some js compatibilities
 
 ## 0.notes
 
@@ -46,6 +47,7 @@ conclude some js compatibilities<br/>
   only for advanced browser
 
 ### function:
+
 ```js
 function getByClassName(obj, sClass){
     if(obj.getElementsByClassName)
@@ -84,6 +86,7 @@ function getByClassName(obj, sClass){
 2. attachEvent is for old IE
 
 ### function:
+
 ```js
 function addEvent(obj, sEv, fn){
     obj.addEventListener ? obj.addEventListener(sEv,fn,false) : obj.attachEvent("on"+sEv,fn);
@@ -117,11 +120,10 @@ firefox        element.addEventListener("DOMMouseScroll",fn,false)
 
 1. DOMMouseScroll is only for firefox, and only can use element.addEventListener("DOMMouseScroll",fn,false) to add event
 2. mousewheel is for others, chrome and IE11 use addEventListener
-3. IE10~9 can use either addEventListener or attachEvent
-4. IE8~5 can only use attachEvent
-or can use element.onmousewheel = function(){...};
+3. IE10~9 can use either addEventListener or attachEvent, IE8~5 can only use attachEvent or can use element.onmousewheel = function(){...};
 
 ### function:
+
 ```js
 function addMousewheel(obj,fn){
     if(navigator.userAgent.indexOf("Firefox") != -1)//firfox can only use addEventListener
@@ -323,10 +325,12 @@ srcElemnt/target (fromElement/relatedTarget  toElement/relatedTarget)
 2. fromElement/relatedTarget  toElement/relatedTarget is the same as srcElement/target
 
 ### attention:
+
 ```js
 var oEvent = ev || event;
 var oSrc = oEvent.srcElement || target;
 ```
+
 1. actually, firefox can only use ev.target, old IE can only use event.srcElement
 2. chrome and IE11 can use all
 3. chrome and IE10~9 can use all except for event.target
