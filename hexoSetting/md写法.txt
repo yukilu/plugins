@@ -1,0 +1,10 @@
+---
+title: article_title
+date: 1991-12-17 12:00:00
+tags: tag
+---
+
+xxx
+<!-- more --> (自动显示摘要要设为false)
+
+xxx
